@@ -1,0 +1,4 @@
+OWSLib
+pandas
+sqlalchemy
+psycopg2
