@@ -12,8 +12,9 @@ import uuid
 ''' Log com as configurações padroes '''
 log = util.getLogger()
 
-'''Persiste no banco informações sobre um WMS referente a um catalogo'''
+
 def persistirServicoWMS(urlRecord, record, idCatalogo):
+    '''Persiste no banco informações sobre um WMS referente a um catalogo'''
     try:
         log.info("Iniciando requisicao")
         if record.identifier == '7AB2A294-28CC-42D6-BE25-5477AD08514F':
@@ -37,8 +38,9 @@ def persistirServicoWMS(urlRecord, record, idCatalogo):
         '''Lança a exceção para quem chamou esse escopo'''
         raise
 
-'''Persiste no banco informações sobre um WFS referente a um catalogo'''
+
 def persistirServicoWFS(urlRecord, record, idCatalogo):
+    '''Persiste no banco informações sobre um WFS referente a um catalogo'''
     try:
         log.info("Iniciando requisicao")
         wfs = WebFeatureService(urlRecord)
@@ -63,11 +65,13 @@ def persistirServicoWFS(urlRecord, record, idCatalogo):
         '''Lança a exceção para quem chamou esse escopo'''
         raise
 
-'''Persisti um novo registro no banco'''
+
 def persistirRegistro(registro, idCatalogo):
+    '''Persisti um novo registro no banco'''
     try:
         log.info('Coleta de dados do registro')
-        columns = ['title', 'publisher', 'bounding_box', 'creation_data', 'modification_data', 'description', 'keywords', 'catalogo_id']
+        columns = ['title', 'publisher', 'bounding_box', 'creation_data',
+                   'modification_data', 'description', 'keywords', 'catalogo_id']
         if registro.bbox is not None:
             bbox = str(registro.bbox.maxx+', '+registro.bbox.maxy+', '+registro.bbox.minx+', '+registro.bbox.miny)
         else:
@@ -98,8 +102,8 @@ def persistirRegistro(registro, idCatalogo):
         traceback.print_exc()
         # raise
 
-'''Busca todos os serviços de cada recuro do catologo e persiste'''
 def buscarRegistrosDoCatalogo(cataglogoURL, idCatalogo):
+    '''Busca todos os serviços de cada recuro do catologo e persiste'''
     csw = CatalogueServiceWeb(url=cataglogoURL)
     recursosIndisponiveis = []
     verificadoWMS = []
@@ -121,7 +125,8 @@ def buscarRegistrosDoCatalogo(cataglogoURL, idCatalogo):
             if 'wms' in tuple:
                 try:
                     log.info("Encontrado um wms")
-                    if not recursosIndisponiveis.__contains__(tuple['wms']) and not verificadoWMS.__contains__(tuple['wms']):
+                    if not recursosIndisponiveis\
+                            .__contains__(tuple['wms']) and not verificadoWMS.__contains__(tuple['wms']):
                         verificadoWMS.append(tuple['wms'])
                         persistirServicoWMS(tuple['wms'], csw.records[record], idCatalogo)
                     else:
@@ -136,22 +141,23 @@ def buscarRegistrosDoCatalogo(cataglogoURL, idCatalogo):
                     log.error(e)
                     log.error(repr(traceback.extract_stack()))
                     log.info("Falha desconhecida durante o processo")
-            if 'wfs' in tuple:
-                try:
-                    log.info("Encontrado registro um wfs")
-                    if not recursosIndisponiveis.__contains__(tuple['wfs']) and not verificadoWFS.__contains__(tuple['wfs']):
-                        verificadoWFS.append(tuple['wfs'])
-                        persistirServicoWFS(tuple['wfs'], csw.records[record], idCatalogo)
-                    else:
-                        log.info("Já verificado")
-                except ConnectTimeout:
-                    recursosIndisponiveis.append(tuple['wfs'])
-                    log.info("Falha na requisição: timeout")
-                    log.info("Serviço: "+str(tuple['wfs']))
-                except Exception as e:
-                    log.error("Falha desconhecida durante o processo")
-                    log.error(e)
-                    log.error(repr(traceback.extract_stack()))
+            # if 'wfs' in tuple:
+            #     try:
+            #         log.info("Encontrado registro um wfs")
+            #         if not recursosIndisponiveis
+            #         .__contains__(tuple['wfs']) and not verificadoWFS.__contains__(tuple['wfs']):
+            #             verificadoWFS.append(tuple['wfs'])
+            #             persistirServicoWFS(tuple['wfs'], csw.records[record], idCatalogo)
+            #         else:
+            #             log.info("Já verificado")
+            #     except ConnectTimeout:
+            #         recursosIndisponiveis.append(tuple['wfs'])
+            #         log.info("Falha na requisição: timeout")
+            #         log.info("Serviço: "+str(tuple['wfs']))
+            #     except Exception as e:
+            #         log.error("Falha desconhecida durante o processo")
+            #         log.error(e)
+            #         log.error(repr(traceback.extract_stack()))
         #
         i += 100
     log.info('Recursos indisponíveis')
@@ -162,8 +168,9 @@ def buscarRegistrosDoCatalogo(cataglogoURL, idCatalogo):
     log.info(verificadoWFS)
 #
 
-''' Construir Data Frame do catalogo e persistir'''
+
 def construirDFCatalogo(urlCatalogo):
+    ''' Construir Data Frame do catalogo e persistir'''
     try:
         idCatalogo = uuid.uuid4()
         df = DataFrame({'url': urlCatalogo}, index=[idCatalogo])
@@ -172,6 +179,7 @@ def construirDFCatalogo(urlCatalogo):
     except Exception:
         '''Lança a exceção para quem chamou esse escopo'''
         raise
+
 
 if __name__ == '__main__':
     # http://geoinfo.cnps.embrapa.br/geoserver/geonode/wms
