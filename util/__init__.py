@@ -1,13 +1,13 @@
 import logging
 
-comArquivo = False
+withFile = False
 
-def logComArquivo(valor=False):
-    global comArquivo
-    comArquivo = valor
+def logWithFile(logWithFile=False):
+    global withFile
+    withFile = logWithFile
 
 def getLogger():
-    if comArquivo:
+    if withFile:
         logging.basicConfig(format='%(asctime)s - %(levelname)s : %(message)s', filename='main.log',
                             datefmt='%m/%d/%Y %I:%M:%S %p', level=logging.INFO)
     else:

@@ -10,12 +10,13 @@ from data_access.DataUpdateException import DataUpdateException
         Leanderson Coelho
 '''
 
-# buscando configuração de log
+util.logWithFile(logWithFile=False)
+''' Log com as configurações padroes '''
 log = util.getLogger()
 
 # engine para conexão com banco de dados
 try:
-    engine = create_engine('postgresql://postgres:postgres@localhost:5432/inde')
+    engine = create_engine('postgresql://postgres:postgres@localhost:5433/inde_database')
 except Exception as e:
     traceback.print_exc()
 
@@ -30,6 +31,7 @@ def persistirCatalogo(dataFrame):
         log.error(f'DataFrame:\n{dataFrame.tail(5)}')
         raise DataUpdateException()
 
+
 def persistirRegistro(dataFrame):
     try:
         dataFrame.to_sql(name='registro', con=engine, if_exists='append', index=True, index_label='id')
@@ -40,6 +42,7 @@ def persistirRegistro(dataFrame):
         log.error(f'DataFrame:\n{dataFrame.tail(5)}')
         raise DataUpdateException()
 
+
 def persistirServico(dataFrame):
     try:
         dataFrame.to_sql(name='servico', con=engine, if_exists='append', index=True, index_label='id')
@@ -49,6 +52,7 @@ def persistirServico(dataFrame):
         log.error(f'Detalhes: {e}')
         log.error(f'DataFrame:\n{dataFrame.tail(5)}')
         raise DataUpdateException()
+
 
 def persistirFeatureType(dataFrame):
     try:
