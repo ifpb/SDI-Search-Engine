@@ -161,7 +161,7 @@ def buscarRegistrosDoCatalogo(url_catalogue, catalogue_id):
     # total = csw.results['matches']
     total = 19700
     while i < total:
-        log.info(f"Indice de records {i}")
+        log.info("Indice de records " + str(i))
         csw.getrecords2(maxrecords=100, startposition=i, esn='full')
         for record in csw.records:
             log.info("registro: " + record)
@@ -237,7 +237,8 @@ if __name__ == '__main__':
     # http://geoinfo.cpatu.embrapa.br/geoserver/geonode/wfs
     # try:
     catalogue_id = construirDFCatalogo('http://www.metadados.inde.gov.br/geonetwork/srv/por/csw')
-    buscarRegistrosDoCatalogo('http://www.metadados.inde.gov.br/geonetwork/srv/por/csw', catalogue_id)
-    geometry_data.start_creation_envelop_services()
+    print( catalogue_id)
+    # buscarRegistrosDoCatalogo('http://www.metadados.inde.gov.br/geonetwork/srv/por/csw', catalogue_id)
+    # geometry_data.start_creation_envelop_services()
     # except:
         # traceback.print_exc()
