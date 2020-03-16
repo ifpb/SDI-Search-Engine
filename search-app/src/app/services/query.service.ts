@@ -12,8 +12,8 @@ export class QueryService {
   constructor(
     private http: HttpClient
   ) {
-    this.http.post(this.API + '/find-place/level-service/', {'place-name': 'cajazeiras'}).subscribe(result => {
-      console.log(result);
-    })
+    // this.http.post(this.API + '/find-place/level-service/', {'place-name': 'cajazeiras'}).subscribe(result => {
+    //   console.log(result);
+    // })
   }
 }

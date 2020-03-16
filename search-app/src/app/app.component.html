@@ -1,10 +1,22 @@
-<div class="card" style="width: 18rem;">
-  <img src="/assets/tecido_padrao.png" class="card-img-top" alt="...">
-  <div class="card-body">
-    <h5 class="card-title">Card title</h5>
-    <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
-    <a href="#" class="btn btn-primary">Go somewhere</a>
+<nav class="navbar navbar-dark bg-primary navbar-expand-lg">
+  <a class="navbar-brand" href="#">INDE search</a>
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav"
+    aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+  <div class="collapse navbar-collapse" id="navbarNav">
+    <ul class="navbar-nav">
+      <li [routerLink]="['/home']" routerLinkActive="active" class="nav-item">
+        <a class="nav-link" >Home</a>
+      </li>
+      <li [routerLink]="['/service/query']" routerLinkActive="active" class="nav-item">
+        <a class="nav-link">Serviços</a>
+      </li>
+      <li [routerLink]="['/feature-type/query']" routerLinkActive="active" class="nav-item">
+        <a class="nav-link">Feature Types</a>
+      </li>
+    </ul>
   </div>
-</div>
+</nav>
 
 <router-outlet></router-outlet>

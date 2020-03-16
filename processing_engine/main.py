@@ -105,6 +105,8 @@ def persistirServicoWFS(url_record, record, catalogue_id):
             data['publisher'] = wfs.provider.contact.organization
         else:
             data['publisher'] = None
+        service_id = uuid.uuid4()
+        persistirFeatureType(wfs.contents, service_id.__str__())
         df = DataFrame(data=data, columns=columns, index=[uuid.uuid4()])
         data_access.persist_service(df)
     except:
@@ -159,7 +161,7 @@ def buscarRegistrosDoCatalogo(url_catalogue, catalogue_id):
     csw.getrecords2()
     i = 19000
     # total = csw.results['matches']
-    total = 19700
+    total = 25000
     while i < total:
         log.info("Indice de records " + str(i))
         csw.getrecords2(maxrecords=100, startposition=i, esn='full')
@@ -190,23 +192,23 @@ def buscarRegistrosDoCatalogo(url_catalogue, catalogue_id):
                     log.error(e)
                     log.error(repr(traceback.extract_stack()))
                     log.info("Falha desconhecida durante o processo")
-            # if 'wfs' in tuple:
-            #     try:
-            #         log.info("Encontrado registro um wfs")
-            #         if not recursosIndisponiveis.__contains__(tuple['wfs']) \
-            #                 and not verificadoWFS.__contains__(tuple['wfs']):
-            #             verificadoWFS.append(tuple['wfs'])
-            #             persistirServicoWFS(tuple['wfs'], csw.records[record], catalogue_id)
-            #         else:
-            #             log.info("Já verificado")
-            #     except ConnectTimeout:
-            #         recursosIndisponiveis.append(tuple['wfs'])
-            #         log.info("Falha na requisição: timeout")
-            #         log.info("Serviço: " + str(tuple['wfs']))
-            #     except Exception as e:
-            #         log.error("Falha desconhecida durante o processo")
-            #         log.error(e)
-            #         log.error(repr(traceback.extract_stack()))
+            if 'wfs' in tuple:
+                try:
+                    log.info("Encontrado registro um wfs")
+                    if not recursosIndisponiveis.__contains__(tuple['wfs']) \
+                            and not verificadoWFS.__contains__(tuple['wfs']):
+                        verificadoWFS.append(tuple['wfs'])
+                        persistirServicoWFS(tuple['wfs'], csw.records[record], catalogue_id)
+                    else:
+                        log.info("Já verificado")
+                except ConnectTimeout:
+                    recursosIndisponiveis.append(tuple['wfs'])
+                    log.info("Falha na requisição: timeout")
+                    log.info("Serviço: " + str(tuple['wfs']))
+                except Exception as e:
+                    log.error("Falha desconhecida durante o processo")
+                    log.error(e)
+                    log.error(repr(traceback.extract_stack()))
 
         i += 100
     log.info('Recursos indisponíveis')
@@ -236,9 +238,8 @@ if __name__ == '__main__':
     # http://geoinfo.cnps.embrapa.br/geoserver/geonode/wms
     # http://geoinfo.cpatu.embrapa.br/geoserver/geonode/wfs
     # try:
-    catalogue_id = construirDFCatalogo('http://www.metadados.inde.gov.br/geonetwork/srv/por/csw')
-    print( catalogue_id)
+    # catalogue_id = construirDFCatalogo('http://www.metadados.inde.gov.br/geonetwork/srv/por/csw')
     # buscarRegistrosDoCatalogo('http://www.metadados.inde.gov.br/geonetwork/srv/por/csw', catalogue_id)
-    # geometry_data.start_creation_envelop_services()
+    geometry_data.start_creation_envelop_services()
     # except:
         # traceback.print_exc()
