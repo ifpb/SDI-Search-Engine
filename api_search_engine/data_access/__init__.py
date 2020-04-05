@@ -18,8 +18,11 @@ except Exception as e:
 
 def find_place(place_name):
     result = engine.execute(f"SELECT nome, tipo, geom FROM place WHERE nome ILIKE '{place_name}'").fetchall()
-    app_log.info("find place result: " + str(result[0]))
-    return result[0]
+    if len(result) > 0:
+        app_log.info("find place result: " + result[0][0] + " - " + result[0][1])
+        return result[0]
+    else:
+        return None
 
 
 # only for test
@@ -37,7 +40,11 @@ def find_all_services():
     query = """
         SELECT ST_MakeEnvelope(bounding_box_xmin::float, bounding_box_ymin::float,
         bounding_box_xmax::float, bounding_box_ymax::float),
-        id, url, type, title, description, publisher from service
+        id, url, type, title, description, publisher from service 
+        WHERE bounding_box_xmax not ilike '' and
+			bounding_box_ymin not ilike '' and
+			bounding_box_xmax not ilike '' and
+			bounding_box_ymax not ilike '' 
     """
     result = engine.execute(query).fetchall()
     list_all_services = []
@@ -53,9 +60,35 @@ def calcule_tversky(service_geometry, place_geometry):
         (ST_Area(ST_Intersection('{service_geometry}'::geometry, '{place_geometry}'::geometry)))
         /
         ( ST_Area(ST_Intersection('{service_geometry}'::geometry, '{place_geometry}'::geometry))
-         + 1 * (ST_Area(ST_Difference('{service_geometry}'::geometry, '{place_geometry}'::geometry)))
-        + 1 * (ST_Area(ST_Difference('{place_geometry}'::geometry, '{service_geometry}'::geometry))) )
+         + 0.5 * (ST_Area(ST_Difference('{service_geometry}'::geometry, '{place_geometry}'::geometry)))
+        + 0.5 * (ST_Area(ST_Difference('{place_geometry}'::geometry, '{service_geometry}'::geometry))) )
     ) as tversky
     """
     result = engine.execute(query).fetchall()[0]
     return result["tversky"]
+
+
+def verify_intersect(geometry1, geometry2):
+    query = f"SELECT ST_Intersects('{geometry1}'::geometry, '{geometry2}'::geometry)"
+    result = engine.execute(query).fetchall()[0]
+    return result[0]
+
+
+def verify_intersect_bbox(geometry1, feature):
+    query = f"""
+        SELECT ST_Intersects('{geometry1}'::geometry, 
+        ST_MakeEnvelope({feature[0]}, {feature[1]}, {feature[2]}, {feature[3]}))
+    """
+    result = engine.execute(query).fetchall()[0]
+    return result[0]
+
+
+def feature_types_of_service(service):
+    query = f"""
+            SELECT ST_MakeEnvelope(
+            bounding_box_xmin::float, bounding_box_ymin::float,
+            bounding_box_xmax::float, bounding_box_ymax::float
+            ) as geom, id 
+            from feature_type ft WHERE ft.service_id ilike '{service[1]}'
+        """
+    return engine.execute(query).fetchall()

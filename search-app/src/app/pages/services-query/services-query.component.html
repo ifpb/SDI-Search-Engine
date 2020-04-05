@@ -1,3 +1,52 @@
-<p>
-  services-query works!
-</p>
+<div class="jumbotron jumbotron-fluid">
+  <div class="container">
+    <h1 class="display-4">Pesquisar serviços OGC WMS/WFS</h1>
+    <p class="lead">Informe um nome de uma cidade ou estado para recuperar os serviços associados.</p>
+  </div>
+</div>
+<div class="container">
+  <div class="row justify-content-md-center">
+    <div class="input-group mb-3">
+      <input [(ngModel)]="search" type="text" class="form-control" placeholder="Cidade ( ou Estado)"
+        aria-label="Recipient's username" aria-describedby="button-addon2">
+      <div class="input-group-append">
+        <button (click)="searchServices()" [disabled]="blocked_button" class="btn btn-outline-secondary" type="button"
+          id="button-addon2">Pesquisar</button>
+      </div>
+    </div>
+  </div>
+  <div *ngIf="blocked_button" class="progress">
+    <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" aria-valuenow="100"
+      aria-valuemin="0" aria-valuemax="100" style="width: 100%">
+    </div>
+  </div>
+  <div class="accordion" id="accordionExample">
+    <div *ngIf="services.length > 0">
+      <h3>Total de serviços encontrados: {{ services.length }}</h3>
+    </div>
+    <div *ngFor="let service of services | slice: (page-1) * pageSize : (page-1) * pageSize + pageSize">
+      <div>
+        <!-- data-toggle="collapse" attr.data-target="{{service.id}}" -->
+        <section data-toggle="collapse" [attr.data-target]="'#collapse'+service.id"
+        aria-expanded="false" aria-controls="collapseOne" class="card" class="card-header" id="headingOne">
+          <h5 class="mb-0">
+            <button  class="btn" type="button">
+              {{ service.title }}
+            </button>
+          </h5>
+        </section>
+        <div [id]="'collapse'+service.id" class="collapse show" aria-labelledby="headingOne" data-parent="#accordionExample">
+          <div class="card-body">
+           <p><b>Descrição:</b> {{ service.description }}</p>
+           <p><b>Organização:</b> {{ service.publisher }}</p>
+           <p><b>Tipo:</b> {{ service.type }}</p>
+           <p><b>URL:</b> {{ service.url }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div *ngIf="services.length > 0">
+    <ngb-pagination [(page)]="page" [pageSize]="pageSize" [collectionSize]="services.length"></ngb-pagination>
+  </div>
+</div>

@@ -13,7 +13,7 @@ import geometry_data
 log = util.get_logger()
 
 
-def persistirFeatureType(content, service_id):
+def persist_feature_type(content, service_id):
     '''Percorre todos as feições do serviço para armazenar no banco'''
     try:
         data = {
@@ -47,29 +47,35 @@ def persistirFeatureType(content, service_id):
         raise
 
 
-def persistirServicoWMS(url_record, record, catalogue_id):
+def persist_wms_service(url_record, record, catalogue_id):
     '''Persiste no banco informações sobre um WMS referente a um catalogo'''
     try:
         log.info("Iniciando requisicao")
         wms = WebMapService(url_record)
         '''Só persisti o registro caso a requisição para o serviço de certo'''
-        register_id = persistirRegistro(record, catalogue_id)
-        columns = ['url', 'type', 'title', 'description', 'publisher', 'registro_id',
+        register_id = persist_register(record, catalogue_id)
+        columns = ['url', 'type', 'title', 'description', 'publisher', 'register_id',
                    'bounding_box_xmin', 'bounding_box_ymin', 'bounding_box_xmax', 'bounding_box_ymax']
         data = {
             'url': wms.url,
             'type': 'OGC:WMS',
-            'title': wms.identification.title,
-            'description': wms.identification.abstract,
+            'title': record.title,
+            'description': record.abstract,
             'publisher': wms.provider.contact.organization,
-            'registro_id': register_id,
+            'register_id': register_id,
             'bounding_box_xmin': '',
             'bounding_box_ymin': '',
             'bounding_box_xmax': '',
             'bounding_box_ymax': ''
         }
+        if dir(wms.provider).__contains__('contact') and dir(wms.provider.contact).__contains__('organization'):
+            data['publisher'] = wms.provider.contact.organization
+        elif record.publisher is not None:
+            data['publisher'] = record.publisher
+        else:
+            data['publisher'] = None
         service_id = uuid.uuid4()
-        persistirFeatureType(wms.contents, service_id.__str__())
+        persist_feature_type(wms.contents, service_id.__str__())
         df = DataFrame(data=data, columns=columns, index=[service_id])
         data_access.persist_service(df)
         return True
@@ -78,7 +84,7 @@ def persistirServicoWMS(url_record, record, catalogue_id):
         raise
 
 
-def persistirServicoWFS(url_record, record, catalogue_id):
+def persist_wfs_service(url_record, record, catalogue_id):
     '''Persiste no banco informações sobre um WFS referente a um catalogo'''
     # TODO falta persistir os features types do WFS tbm
     # TODO lembrar de colocar o service_id.__str__()
@@ -86,15 +92,15 @@ def persistirServicoWFS(url_record, record, catalogue_id):
         log.info("Iniciando requisicao")
         wfs = WebFeatureService(url_record)
         '''Só persisti o registro caso a requisição para o serviço de certo'''
-        register_id = persistirRegistro(record, catalogue_id)
-        columns = ['url', 'type', 'title', 'description', 'publisher', 'registro_id',
+        register_id = persist_register(record, catalogue_id)
+        columns = ['url', 'type', 'title', 'description', 'publisher', 'register_id',
                    'bounding_box_xmin', 'bounding_box_ymin', 'bounding_box_xmax', 'bounding_box_ymax']
         data = {
             'url': wfs.url,
             'type': 'OGC:WFS',
-            'title': wfs.identification.title,
-            'description': wfs.identification.abstract,
-            'registro_id': register_id,
+            'title': record.title,
+            'description': record.abstract,
+            'register_id': register_id,
             'bounding_box_xmin': '',
             'bounding_box_ymin': '',
             'bounding_box_xmax': '',
@@ -103,10 +109,12 @@ def persistirServicoWFS(url_record, record, catalogue_id):
         '''Verificando se existe os atributos de publisher'''
         if dir(wfs.provider).__contains__('contact') and dir(wfs.provider.contact).__contains__('organization'):
             data['publisher'] = wfs.provider.contact.organization
+        elif record.publisher is not None:
+            data['publisher'] = record.publisher
         else:
             data['publisher'] = None
         service_id = uuid.uuid4()
-        persistirFeatureType(wfs.contents, service_id.__str__())
+        persist_feature_type(wfs.contents, service_id.__str__())
         df = DataFrame(data=data, columns=columns, index=[uuid.uuid4()])
         data_access.persist_service(df)
     except:
@@ -114,7 +122,7 @@ def persistirServicoWFS(url_record, record, catalogue_id):
         raise
 
 
-def persistirRegistro(register, catalogue_id):
+def persist_register(register, catalogue_id):
     '''Persisti um novo registro no banco'''
     try:
         log.info('Coleta de dados do registro')
@@ -152,7 +160,7 @@ def persistirRegistro(register, catalogue_id):
         # raise
 
 
-def buscarRegistrosDoCatalogo(url_catalogue, catalogue_id):
+def find_register_of_catalogue(url_catalogue, catalogue_id):
     '''Busca todos os serviços de cada recuro do catologo e persiste'''
     csw = CatalogueServiceWeb(url=url_catalogue)
     recursosIndisponiveis = []
@@ -161,7 +169,7 @@ def buscarRegistrosDoCatalogo(url_catalogue, catalogue_id):
     csw.getrecords2()
     i = 19000
     # total = csw.results['matches']
-    total = 25000
+    total = 22000
     while i < total:
         log.info("Indice de records " + str(i))
         csw.getrecords2(maxrecords=100, startposition=i, esn='full')
@@ -179,7 +187,7 @@ def buscarRegistrosDoCatalogo(url_catalogue, catalogue_id):
                     if not recursosIndisponiveis \
                             .__contains__(tuple['wms']) and not verificadoWMS.__contains__(tuple['wms']):
                         verificadoWMS.append(tuple['wms'])
-                        persistirServicoWMS(tuple['wms'], csw.records[record], catalogue_id)
+                        persist_wms_service(tuple['wms'], csw.records[record], catalogue_id)
                     else:
                         log.info("Já verificado")
                 except ConnectTimeout:
@@ -198,7 +206,7 @@ def buscarRegistrosDoCatalogo(url_catalogue, catalogue_id):
                     if not recursosIndisponiveis.__contains__(tuple['wfs']) \
                             and not verificadoWFS.__contains__(tuple['wfs']):
                         verificadoWFS.append(tuple['wfs'])
-                        persistirServicoWFS(tuple['wfs'], csw.records[record], catalogue_id)
+                        persist_wfs_service(tuple['wfs'], csw.records[record], catalogue_id)
                     else:
                         log.info("Já verificado")
                 except ConnectTimeout:
@@ -239,7 +247,7 @@ if __name__ == '__main__':
     # http://geoinfo.cpatu.embrapa.br/geoserver/geonode/wfs
     # try:
     # catalogue_id = construirDFCatalogo('http://www.metadados.inde.gov.br/geonetwork/srv/por/csw')
-    # buscarRegistrosDoCatalogo('http://www.metadados.inde.gov.br/geonetwork/srv/por/csw', catalogue_id)
+    # find_register_of_catalogue('http://www.metadados.inde.gov.br/geonetwork/srv/por/csw', catalogue_id)
     geometry_data.start_creation_envelop_services()
     # except:
         # traceback.print_exc()

@@ -19,5 +19,11 @@ def find_place():
     return jsonify(list_services)
 
 
+@app.route('/test')
+@cross_origin()
+def find_place_service():
+    query_service.test_find_services()
+
+
 if __name__ == '__main__':
     app.run(debug=True)

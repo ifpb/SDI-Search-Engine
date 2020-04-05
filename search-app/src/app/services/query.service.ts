@@ -1,6 +1,7 @@
 import { environment } from './../../environments/environment';
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { first } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root'
@@ -11,9 +12,9 @@ export class QueryService {
 
   constructor(
     private http: HttpClient
-  ) {
-    // this.http.post(this.API + '/find-place/level-service/', {'place-name': 'cajazeiras'}).subscribe(result => {
-    //   console.log(result);
-    // })
+  ) {}
+
+  findServices(placeName){
+    return this.http.post(this.API + '/find-place/level-service/', {'place-name': placeName}).toPromise();
   }
 }
