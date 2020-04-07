@@ -1,3 +1,4 @@
+import { FeatureTypeQueryComponent } from './feature-type-query/feature-type-query.component';
 import { ServicesQueryComponent } from './services-query/services-query.component';
 import { HomeComponent } from './home/home.component';
 import { Routes, RouterModule } from '@angular/router';
@@ -12,6 +13,10 @@ const routes: Routes = [
     {
       path: 'service/query',
       component: ServicesQueryComponent
+    },
+    {
+      path: 'feature-type/query',
+      component: FeatureTypeQueryComponent
     },
     {
       path: '',

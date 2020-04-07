@@ -17,4 +17,8 @@ export class QueryService {
   findServices(placeName){
     return this.http.post(this.API + '/find-place/level-service/', {'place-name': placeName}).toPromise();
   }
+
+  findeFeaturesTypes(placeName){
+    return this.http.post(this.API + '/find-place/level-feature-type/', {'place-name': placeName}).toPromise();
+  }
 }

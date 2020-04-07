@@ -19,8 +19,11 @@ except Exception as e:
 def find_place(place_name):
     result = engine.execute(f"SELECT nome, tipo, geom FROM place WHERE nome ILIKE '{place_name}'").fetchall()
     if len(result) > 0:
+        if len(result) > 1:
+            app_log.info("existe mais de um!")
+            return result
         app_log.info("find place result: " + result[0][0] + " - " + result[0][1])
-        return result[0]
+        return result
     else:
         return None
 
@@ -89,6 +92,18 @@ def feature_types_of_service(service):
             bounding_box_xmin::float, bounding_box_ymin::float,
             bounding_box_xmax::float, bounding_box_ymax::float
             ) as geom, id 
+            from feature_type ft WHERE ft.service_id ilike '{service[1]}'
+        """
+    return engine.execute(query).fetchall()
+
+
+def feature_types_of_service_all_data(service):
+    query = f"""
+            SELECT ST_MakeEnvelope(
+            bounding_box_xmin::float, bounding_box_ymin::float,
+            bounding_box_xmax::float, bounding_box_ymax::float
+            ) as geom, id, title, name, description, keywords, service_id,
+            bounding_box_xmin, bounding_box_ymin, bounding_box_xmax, bounding_box_ymax 
             from feature_type ft WHERE ft.service_id ilike '{service[1]}'
         """
     return engine.execute(query).fetchall()

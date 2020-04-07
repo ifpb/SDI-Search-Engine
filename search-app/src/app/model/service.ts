@@ -13,7 +13,9 @@ export class Service{
         public publisher?: string,
         public description?: string,
         public type?: string,
-        public url?: string
+        public url?: string,
+        public quantity?: number,
+        public similarity?: number
     ){}
 }
 
@@ -21,5 +23,22 @@ export class ServiceResponse{
     constructor(
         public service: Service,
         public similarity: number
+    ){}
+}
+
+export class FeatureType{
+    constructor(
+        public id?: string,
+        public similarity?: number,
+        public title?: string,
+        public name?: string,
+        public description?: string,
+        public keywords?: string,
+        public service_id?: string,
+        public bounding_box_xmin?: number,
+        public bounding_box_ymin?: number,
+        public bounding_box_xmax?: number,
+        public bounding_box_ymax?: number,
+
     ){}
 }
