@@ -1,10 +1,10 @@
-from werkzeug.http import HTTP_STATUS_CODES
-
 import data_access
 import log
 from request_status.multiple_choices import HttpMultipleChoices
 from request_status.not_content import HttpNotContent
 from request_status.not_found import HttpNotFound
+from service import MultipleChoices as mc
+
 
 """ Obtem o log padão da aplicação """
 app_log = log.get_logger()
@@ -12,70 +12,79 @@ app_log = log.get_logger()
 SIMILARITY_MIN = 0.0001
 
 
-def find_place_in_level_service(place_name):
+def find_place(place_name):
+    """find for one place with associate locale"""
+    place = data_access.find_place(place_name)
+    if place is not None:
+        if len(place) == 1:
+            return place[0]
+        else:
+            app_log.info("more one places")
+            e = mc.MultipleChoices()
+            e.data = place
+            raise e
+    else:
+        app_log.info("not find place")
+        raise HttpNotFound
+
+
+def find_place_in_level_service(place_name, is_place_id=False):
     """search for services with associate locale"""
-    place = data_access.find_place(place_name)
-    if place is not None:
-        if len(place) == 1:
-            place = place[0]
-            all_services = data_access.find_all_services()
-            result = []
-            if len(all_services) > 0:
-                for service in all_services:
-                    service_round = build_service(service)
-                    # 1 verify if the service intersect
-                    if data_access.verify_intersect(service[0], place[2]):
-                        list_of_features = data_access.feature_types_of_service(service)
-                        if len(list_of_features) > 0:
-                            # 2 verify the intersection with each feature type
-                            features_intersects = intersection_with_place(list_of_features, place)
-                            if len(features_intersects) > 0:
-                                # 3 calculate the similarity between two geometry
-                                service_round = services_with_similarity(features_intersects, place, service_round)
-                                if service_round["quantity"] > 0:
-                                    service_round["similarity"] = service_round["sum_similarity"] / len(list_of_features)
-                                    app_log.info("Serviço relacionado similarity total: " +
-                                                 str(service_round["similarity"]) + " quantidade: " +
-                                                 str(service_round["quantity"]) + " título " + service_round["title"])
-                                    result.append(service_round)
-                return result
-            else:
-                app_log.info("not find services")
-                raise HttpNotContent
-        else:
-            app_log.info("more one places")
-            raise HttpMultipleChoices
+    if not is_place_id:
+        place = find_place(place_name)
     else:
-        app_log.info("not find place")
-        raise HttpNotFound
+        place = data_access.find_place_id(place_name)
+        app_log.info("place by id")
+    #
+    all_services = data_access.find_all_services()
+    result = []
+    if len(all_services) > 0:
+        for service in all_services:
+            service_round = build_service(service)
+            # 1 verify if the service intersect
+            if data_access.verify_intersect(service[0], place[2]):
+                list_of_features = data_access.feature_types_of_service(service)
+                if len(list_of_features) > 0:
+                    # 2 verify the intersection with each feature type
+                    features_intersects = intersection_with_place(list_of_features, place)
+                    if len(features_intersects) > 0:
+                        # 3 calculate the similarity between two geometry
+                        service_round = services_with_similarity(features_intersects, place, service_round)
+                        if service_round["quantity"] > 0:
+                            service_round["similarity"] = service_round["sum_similarity"] / len(list_of_features)
+                            app_log.info("Serviço relacionado similarity total: " +
+                                         str(service_round["similarity"]) + " quantidade: " +
+                                         str(service_round["quantity"]) + " título " + service_round["title"] +
+                                         " id: " + service_round["id"])
+                            result.append(service_round)
+        return result
+    else:
+        app_log.info("not find services")
+        raise HttpNotContent
 
 
-def find_place_in_level_feature_type(place_name):
+def find_place_in_level_feature_type(place_name, is_place_id=False):
     """search for features types with associate locale"""
-    place = data_access.find_place(place_name)
-    if place is not None:
-        if len(place) == 1:
-            place = place[0]
-            all_services = data_access.find_all_services()
-            if len(all_services) > 0:
-                for service in all_services:
-                    result = []
-                    if data_access.verify_intersect(service[0], place[2]):
-                        list_of_features = data_access.feature_types_of_service_all_data(service)
-                        if len(list_of_features) > 0:
-                            features_intersects = intersection_with_place(list_of_features, place)
-                            if len(features_intersects) > 0:
-                                result = calcule_similarity_of_feature_type(features_intersects, place)
-                    return result
-            else:
-                app_log.info("not find services")
-                raise HttpNotContent
-        else:
-            app_log.info("more one places")
-            raise HttpMultipleChoices
+    if not is_place_id:
+        place = find_place(place_name)
     else:
-        app_log.info("not find place")
-        raise HttpNotFound
+        place = data_access.find_place_id(place_name)
+        app_log.info("place by id")
+    #
+    all_services = data_access.find_all_services()
+    if len(all_services) > 0:
+        for service in all_services:
+            result = []
+            if data_access.verify_intersect(service[0], place[2]):
+                list_of_features = data_access.feature_types_of_service_all_data(service)
+                if len(list_of_features) > 0:
+                    features_intersects = intersection_with_place(list_of_features, place)
+                    if len(features_intersects) > 0:
+                        result += calcule_similarity_of_feature_type(features_intersects, place)
+        return result
+    else:
+        app_log.info("not find services")
+        raise HttpNotContent
 
 
 def services_with_similarity(features_intersects, place, service_round):
@@ -110,7 +119,6 @@ def calcule_similarity_of_feature_type(features_intersects, place):
     return features
 
 
-
 def build_service(service):
     service_round = {
         "id": service[1],
@@ -142,3 +150,34 @@ def build_feature_type(feature, similarity):
     }
     return feature
 
+
+def retrieve_all_places(places):
+    """this"""
+    choices = []
+    for place in places:
+        if place[1] == "MUNICÍPIO":
+            # verify which UF contains this place
+            uf = data_access.uf_contains_place(place[2])
+            choices.append(build_city_place_for_choice(place, uf[0]))
+        else:
+            choices.append(build_uf_place_for_choice(place))
+    return choices
+
+
+def build_city_place_for_choice(place_info, uf):
+    """this"""
+    return {
+        "id": place_info[3],
+        "name": place_info[0],
+        "UF": uf,
+        "type": place_info[1]
+    }
+
+
+def build_uf_place_for_choice(place_info):
+    """this"""
+    return {
+        "id": place_info[3],
+        "name": place_info[0],
+        "type": place_info[1]
+    }

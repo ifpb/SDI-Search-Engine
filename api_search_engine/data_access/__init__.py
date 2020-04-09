@@ -17,7 +17,7 @@ except Exception as e:
 
 
 def find_place(place_name):
-    result = engine.execute(f"SELECT nome, tipo, geom FROM place WHERE nome ILIKE '{place_name}'").fetchall()
+    result = engine.execute(f"SELECT nome, tipo, geom, gid FROM place WHERE nome ILIKE '{place_name}'").fetchall()
     if len(result) > 0:
         if len(result) > 1:
             app_log.info("existe mais de um!")
@@ -26,6 +26,19 @@ def find_place(place_name):
         return result
     else:
         return None
+
+
+def find_place_id(place_id):
+    result = engine.execute(f"SELECT nome, tipo, geom, gid FROM place WHERE gid = {place_id}").fetchall()
+    if len(result) > 0:
+        if len(result) > 1:
+            app_log.info("existe mais de um!")
+            return result
+        app_log.info("find place result: " + result[0][0] + " - " + result[0][1])
+        return result[0]
+    else:
+        return None
+
 
 
 # only for test
@@ -107,3 +120,12 @@ def feature_types_of_service_all_data(service):
             from feature_type ft WHERE ft.service_id ilike '{service[1]}'
         """
     return engine.execute(query).fetchall()
+
+
+def uf_contains_place(place):
+    query = f"""
+        SELECT nome FROM place WHERE ST_Contains(geom::geometry, '{place}'::geometry) 
+        and tipo ilike 'UF'
+    """
+    result = engine.execute(query).fetchall()
+    return result[0]

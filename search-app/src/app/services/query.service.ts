@@ -21,4 +21,8 @@ export class QueryService {
   findeFeaturesTypes(placeName){
     return this.http.post(this.API + '/find-place/level-feature-type/', {'place-name': placeName}).toPromise();
   }
+
+  choicePlace(choice: any, level: string){
+    return this.http.post(this.API + '/find-place/choice?level=' + level, {'choice': choice}).toPromise();
+  }
 }

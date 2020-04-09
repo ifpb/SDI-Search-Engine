@@ -42,3 +42,8 @@ export class FeatureType{
 
     ){}
 }
+
+export enum CHOICE_LEVEL {
+    SERVICE = "SERVICE",
+    FEATURE_TYPE = "FEATURE_TYPE"
+}

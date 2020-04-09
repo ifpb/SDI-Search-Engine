@@ -1,6 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { QueryService } from './../../services/query.service';
-import { FeatureType } from './../../model/service';
+import { FeatureType, CHOICE_LEVEL } from './../../model/service';
 import { Component, OnInit } from '@angular/core';
 
 @Component({
@@ -14,6 +14,7 @@ export class FeatureTypeQueryComponent implements OnInit {
   placeName: string;
   blocked_button: boolean = false;
   error: string;
+  choices: any[];
 
   // pagination
   page: number = 1;
@@ -40,7 +41,8 @@ export class FeatureTypeQueryComponent implements OnInit {
           this.error = `Nenhum recurso foi encontrado vinculado ao local: ${this.placeName}!`;
           break;
         case 300:
-          this.error = `Mais de um recuso para ${this.placeName} foi encontrado, aplicação ainda em desenvolvimento para oferecer a escolha.`;
+          this.choices = err.error;
+          this.error = `Mais de um recuso para ${this.placeName} foi encontrado, escolha um local listado abaixo.`;
           break;
         case 404:
           this.error = `Nenhuma localidade foi encontrada com a pesquisa: ${this.placeName}!`;
@@ -57,11 +59,23 @@ export class FeatureTypeQueryComponent implements OnInit {
     console.log(this.placeName);
     this.blocked_button = true;
     this.error = '';
+    this.choices = null;
   }
 
   afterRequest(features){
     console.log(features);
     this.features.sort((a, b) => {return b.similarity - a.similarity});
+  }
+
+  selectChoice(item: any){
+    this.initSearch();
+    this.queryService.choicePlace(item, CHOICE_LEVEL.FEATURE_TYPE).then((features: FeatureType[]) => {
+      this.features = features;
+      this.afterRequest(features);
+    }).catch(err => console.log(err))
+    .finally(() => {
+      this.blocked_button = false;
+    });
   }
 
 }

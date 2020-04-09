@@ -5,21 +5,92 @@
   </div>
 </div>
 <div class="container">
-  <div class="row justify-content-md-center">
-    <div class="input-group mb-3">
-      <input [(ngModel)]="search" type="text" class="form-control" placeholder="Cidade ( ou Estado)"
-        aria-label="Recipient's username" aria-describedby="button-addon2">
-      <div class="input-group-append">
-        <button (click)="searchServices()" [disabled]="blocked_button" class="btn btn-outline-secondary" type="button"
-          id="button-addon2">Pesquisar</button>
+  <div class="row">
+    <div class="col-4 marginbtw">
+      <img width="380" height="480" src="assets/img/brasil.jpeg" alt="Mapa Brasil">
+    </div>
+    <!-- FORMULÁRIO -->
+    <div class="col-6 marginbtw">
+      <div class="card mycard">
+        <div class="card-body">
+          <div *ngIf="error != ''">
+            <div class="alert alert-warning" role="alert">
+              {{ error }}
+            </div>
+          </div>
+          <div class="row">
+            <div class="input-group mb-3">
+              <div class="input-group-prepend">
+                <span class="input-group-text" id="basic-addon1">Pesquisar em:</span>
+              </div>
+              <input [(ngModel)]="search" type="text" class="form-control" aria-describedby="basic-addon1">
+            </div>
+          </div>
+          <div class="row">
+            <div class="input-group mb-3">
+              <div class="input-group-prepend">
+                <span class="input-group-text" id="basic-addon2">Tema:</span>
+              </div>
+              <input type="text" class="form-control" aria-describedby="basic-addon2">
+            </div>
+          </div>
+          <div class="row">
+            <div class="col nopadding simple-margin">
+              <div class="input-group mb-3">
+                <div class="input-group-prepend">
+                  <span class="input-group-text" id="basic-addon3">Entre:</span>
+                </div>
+                <input type="text" class="form-control" aria-describedby="basic-addon3">
+              </div>
+            </div>
+            <div class="col nopadding">
+              <div class="input-group mb-3">
+                <div class="input-group-prepend">
+                  <span class="input-group-text" id="basic-addon4">e:</span>
+                </div>
+                <input type="text" class="form-control" aria-describedby="basic-addon4">
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- BUTTON SEARCH -->
+        <div class="row">
+          <div class="col offset-md-9">
+            <button [disabled]="blocked_button" (click)="searchServices()" type="button" class="btn btn-primary">Pesquisar</button>
+          </div>
+        </div>
+      </div>
+      <!-- PROGRESS BAR -->
+      <div *ngIf="blocked_button" class="progress myprogress">
+        <div class="progress-bar myprogress-bar progress-bar-striped progress-bar-animated" role="progressbar"
+          aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width: 100%">
+        </div>
       </div>
     </div>
   </div>
-  <div *ngIf="blocked_button" class="progress">
-    <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" aria-valuenow="100"
-      aria-valuemin="0" aria-valuemax="100" style="width: 100%">
+  <!-- ESCOLHAS -->
+  <div *ngIf="choices" class="row">
+    <div class="col-4 marginbtw"></div>
+    <div class="col-6 marginbtw topmargin">
+      <div class="card mycard nopadding">
+        <div class="list-group">
+          <div *ngFor="let item of choices">
+            <div *ngIf="item.type === 'UF';else mcp">
+              <a (click)="selectChoice(item)" class="list-group-item list-group-item-action">
+                {{ item.name }} - Estado
+              </a>
+            </div>
+            <ng-template #mcp>
+              <a (click)="selectChoice(item)" class="list-group-item list-group-item-action">
+                {{ item.name }} - Município - {{ item.UF }}
+              </a>
+            </ng-template>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
+  <!-- RESULTADO -->
   <div *ngIf="services" class="accordion" id="accordionExample">
     <div *ngIf="error === '' && services">
       <h3>Total de serviços encontrados: {{ services.length }}</h3>
@@ -45,11 +116,6 @@
           </div>
         </div>
       </div>
-    </div>
-  </div>
-  <div *ngIf="error != ''">
-    <div class="alert alert-warning" role="alert">
-      {{ error }}
     </div>
   </div>
   <div *ngIf="services && services.length > 0">
