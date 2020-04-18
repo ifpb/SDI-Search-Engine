@@ -73,8 +73,8 @@ def find_place_in_level_feature_type(place_name, is_place_id=False):
     #
     all_services = data_access.find_all_services()
     if len(all_services) > 0:
+        result = []
         for service in all_services:
-            result = []
             if data_access.verify_intersect(service[0], place[2]):
                 list_of_features = data_access.feature_types_of_service_all_data(service)
                 if len(list_of_features) > 0:

@@ -40,13 +40,10 @@ def find_place_id(place_id):
         return None
 
 
-
-# only for test
 def find_services_contains_place(place_geometry):
     query = f"""
     select * from service
-    where ST_Contains(ST_MakeEnvelope(bounding_box_xmin::float, bounding_box_ymin::float,
-    bounding_box_xmax::float, bounding_box_ymax::float), '{place_geometry}')
+    where ST_Contains(geometry, '{place_geometry}')
     """
     result = engine.execute(query).fetchall()
     app_log.info(result[0])
@@ -54,9 +51,7 @@ def find_services_contains_place(place_geometry):
 
 def find_all_services():
     query = """
-        SELECT ST_MakeEnvelope(bounding_box_xmin::float, bounding_box_ymin::float,
-        bounding_box_xmax::float, bounding_box_ymax::float),
-        id, url, type, title, description, publisher from service 
+        SELECT geometry, id, url, type, title, description, publisher from service 
         WHERE bounding_box_xmax not ilike '' and
 			bounding_box_ymin not ilike '' and
 			bounding_box_xmax not ilike '' and
@@ -101,10 +96,7 @@ def verify_intersect_bbox(geometry1, feature):
 
 def feature_types_of_service(service):
     query = f"""
-            SELECT ST_MakeEnvelope(
-            bounding_box_xmin::float, bounding_box_ymin::float,
-            bounding_box_xmax::float, bounding_box_ymax::float
-            ) as geom, id 
+            SELECT geometry as geom, id 
             from feature_type ft WHERE ft.service_id ilike '{service[1]}'
         """
     return engine.execute(query).fetchall()
@@ -112,10 +104,7 @@ def feature_types_of_service(service):
 
 def feature_types_of_service_all_data(service):
     query = f"""
-            SELECT ST_MakeEnvelope(
-            bounding_box_xmin::float, bounding_box_ymin::float,
-            bounding_box_xmax::float, bounding_box_ymax::float
-            ) as geom, id, title, name, description, keywords, service_id,
+            SELECT geometry as geom, id, title, name, description, keywords, service_id,
             bounding_box_xmin, bounding_box_ymin, bounding_box_xmax, bounding_box_ymax 
             from feature_type ft WHERE ft.service_id ilike '{service[1]}'
         """
