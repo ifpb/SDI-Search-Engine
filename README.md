@@ -1,4 +1,4 @@
-# tcc-leanderson
+# SDI Search Engine
 Readme em andamento...
 
 ## Link para donwload do database
