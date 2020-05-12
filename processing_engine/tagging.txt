@@ -1,0 +1,18 @@
+Índice Tecnológico Municipal Agropecuário - Censo 2006 Localizacao das usinas sucroalcooleira no Centro Sul em 2014 Uso e cobertura do solo do município de Analândia, São Paulo, no ano de 2016. Monitoramento e controle das queimadas na agricultura  2001-2002, ano 2003. Declividades das APAs de Sousas e Joaquim Egídio em Campinas/SP no ano de 1996 Aptidão agrícola das terras para cultivo de soja (original), Moçambique, 2011. Repasse de ICMS Ecológico 2013 - LE Nº 8.510/93 Setorização de risco alto e muito alto de escorregamentos e inundações - 2013 Pessoas afetadas por desastres naturais entre 2000 e 2013 Mortalidade por pneumonia na faixa etária de 0 a 9 anos - 2013 Mapeamento de áreas de risco a escorregamento, inundação e erosão (período 2000-2013) Precipitação anual média (1960-1990) folhas raster na escala 250.000 Usinas segundo ANA 2004 Vegetação da Amazônia - 2002(Detalhada) Uso do Solo (1999)-Alto Rio das Velhas Repasse de ICMS Ecológico 2015 - LE Nº 8.510/93 2014 a 1º Semestre/2016 olha ai Repasse de ICMS Ecológico 2011 - LE Nº 8.510/93 de acordo com Sistema Brasileiro de Classificação de Solos (SiBCS, 2006). Escala 1:10.000. Mapa representa a distribuição espacial do teor de carbono orgânico na profundidade de 10-20cm obtida a partir de krigagem ordinária de 105 pontos amostrais dispostos em grid de 20 x 20m. Amostragem realizada em 04/2015. Mapa do teor de umidade do solo, na profundidade de 0-10 cm, usando krigagem ordinária a partir de 105 pontos amostrais dispostos em grid de 20 x 20 m da área de estudo do projeto SensorProx, Seropédica, RJ. Amostragem realizada em 04/2015. 2018/2019. 
+
+
+
+
+
+
+
+
+
+
+para as datas com números:
+((\d{2}|\d{1})-(\d{2}|\d{1})-(\d{4}|\d{2})|(\d{2}|\d{1})\/(\d{2}|\d{1})\/(\d{4}|\d{2})|(\d{2}|\d{1})\/(janeiro|jan(\.|)|fevereiro|fev(\.|)|março|mar(\.|)|abril|abr(\.|)|maio|mai(\.|)|junho|jun(\.|)|julho|jul(\.|)|agosto|ago(\.|)|setembro|set(\.|)|outubro|out(\.|)|novembro|nov(\.|)|dezembro|dez(\.|))\/(\d{4}|\d{2})|(\d{2}|\d{1})-(janeiro|jan(\.|)|fevereiro|fev(\.|)|março|mar(\.|)|abril|abr(\.|)|maio|mai(\.|)|junho|jun(\.|)|julho|jul(\.|)|agosto|ago(\.|)|setembro|set(\.|)|outubro|out(\.|)|novembro|nov(\.|)|dezembro|dez(\.|))-(\d{4}|\d{2})|\d{2}-\d{4}|\d{2}\/\d{4}|\d{4})
+para datas quase por extenso
+(([0-9]|[0-9][0-9]|(décimo segundo|décimo primero|último|primeiro|segundo|terceiro|quarto|quinto|sexto|sétimo|oitavo|nono|décimo))(º|)( de | do mês de | ))((janeiro|jan(\.|)|fevereiro|fev(\.|)|março|mar(\.|)|abril|abr(\.|)|maio|mai(\.|)|junho|jun(\.|)|julho|jul(\.|)|agosto|ago(\.|)|setembro|set(\.|)|outubro|out(\.|)|novembro|nov(\.|)|dezembro|dez(\.|))( de | do ano de | em | ))(\d{4}|\d{2})
+
+semestre e bimestres..
+([0-9](º|)|(décimo segundo|décimo primero|último|primeiro|segundo|terceiro|quarto|quinto|sexto|sétimo|oitavo|nono|décimo))( |)((mês do ano de | mês do ano | mês de )|(semestre|sem\.|sem)|(bimestre|bim\.|bim)|(trimestre|trim\.|trim))( de |\/| em |)(\d{4}|\d{2})

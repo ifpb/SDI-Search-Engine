@@ -20,6 +20,9 @@ export class FeatureTypeQueryComponent implements OnInit {
   page: number = 1;
   pageSize: number = 10;
 
+  // log
+  time: Date;
+
   constructor(
     private queryService: QueryService
   ) { }
@@ -60,11 +63,15 @@ export class FeatureTypeQueryComponent implements OnInit {
     this.blocked_button = true;
     this.error = '';
     this.choices = null;
+    this.time = new Date();
+    console.log(this.time.getMinutes() + " - " + this.time.getSeconds() + " - " + this.time.getMilliseconds());
   }
 
   afterRequest(features){
     console.log(features);
     this.features.sort((a, b) => {return b.similarity - a.similarity});
+    this.time = new Date();
+    console.log(this.time.getMinutes() + " - " + this.time.getSeconds() + " - " + this.time.getMilliseconds());
   }
 
   selectChoice(item: any){

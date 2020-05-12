@@ -4,7 +4,7 @@ from request_status.multiple_choices import HttpMultipleChoices
 from request_status.not_content import HttpNotContent
 from request_status.not_found import HttpNotFound
 from service import MultipleChoices as mc
-
+import time
 
 """ Obtem o log padão da aplicação """
 app_log = log.get_logger()
@@ -57,6 +57,7 @@ def find_place_in_level_service(place_name, is_place_id=False):
                                          str(service_round["quantity"]) + " título " + service_round["title"] +
                                          " id: " + service_round["id"])
                             result.append(service_round)
+        app_log.info('quantidade final: '+str(len(result)))
         return result
     else:
         app_log.info("not find services")
@@ -76,11 +77,15 @@ def find_place_in_level_feature_type(place_name, is_place_id=False):
         result = []
         for service in all_services:
             if data_access.verify_intersect(service[0], place[2]):
+                app_log.info('service id: ' + service[1])
                 list_of_features = data_access.feature_types_of_service_all_data(service)
+                app_log.info('total de ft do service: ' + str(len(list_of_features)))
                 if len(list_of_features) > 0:
                     features_intersects = intersection_with_place(list_of_features, place)
+                    app_log.info('total de ft que intersectam com o place: ' + str(len(features_intersects)))
                     if len(features_intersects) > 0:
-                        result += calcule_similarity_of_feature_type(features_intersects, place)
+                        result += calculate_similarity_of_feature_type(features_intersects, place)
+        app_log.info('quantidade final: '+str(len(result)))
         return result
     else:
         app_log.info("not find services")
@@ -90,7 +95,9 @@ def find_place_in_level_feature_type(place_name, is_place_id=False):
 def services_with_similarity(features_intersects, place, service_round):
     """calculate the similarity between two geometry"""
     for feature in features_intersects:
+        app_log.info('start calcule')
         similarity = data_access.calcule_tversky(place[2], feature[0])
+        app_log.info('end calcule')
         if similarity > SIMILARITY_MIN:
             service_round["quantity"] += 1
             service_round["sum_similarity"] += similarity
@@ -108,10 +115,11 @@ def intersection_with_place(list_of_features, place):
     return features_intersects
 
 
-def calcule_similarity_of_feature_type(features_intersects, place):
+def calculate_similarity_of_feature_type(features_intersects, place):
     """calculate the similarity between the place and feature type"""
     features = []
     for feature in features_intersects:
+        app_log.info('id of the feature: ' + feature[1])
         similarity = data_access.calcule_tversky(place[2], feature[0])
         if similarity > SIMILARITY_MIN:
             app_log.info("------> feature: " + feature[1] + " similarity: " + str(similarity))
@@ -142,11 +150,7 @@ def build_feature_type(feature, similarity):
         "name": feature[3],
         "description": feature[4],
         "keywords": feature[5],
-        "service_id": feature[6],
-        "bounding_box_xmin": feature[7],
-        "bounding_box_ymin": feature[8],
-        "bounding_box_xmax": feature[9],
-        "bounding_box_ymax": feature[10]
+        "service_id": feature[6]
     }
     return feature
 

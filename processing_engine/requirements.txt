@@ -1,4 +1,6 @@
+requests
 OWSLib
 pandas
 sqlalchemy
 psycopg2
+dateparser

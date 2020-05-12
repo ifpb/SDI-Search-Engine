@@ -24,3 +24,9 @@ def bounding_box_from_tuple(tuple_of_bbox):
             float(tuple_of_bbox[0][0].split("BOX")[1].split(",")[1].split(" ")[0]),
             float(tuple_of_bbox[0][0].split("BOX")[1].split(",")[1].split(" ")[1].split(")")[0])]
     return bbox
+
+
+def process_escape_character(data):
+    if data is not None:
+        return data.replace('\'', '\'\'')
+    return None

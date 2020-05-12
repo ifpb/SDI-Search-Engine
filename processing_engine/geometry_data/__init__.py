@@ -18,3 +18,11 @@ def start_creation_envelop_services():
         log.info(f"atualizando service: {service}")
         data_access.update_service(service, bbox_of_service)
     log.info('end geometry_data')
+
+
+def create_envelop_of_service(service_id):
+    """ Cria o envelope do serviço passado """
+    log.info(f"started creation bbox of service {service_id}")
+    bbox_of_service = data_access.create_bounding_box_of_service(service_id)
+    log.info(f"atualizando service: {service_id}")
+    data_access.update_service(service_id, bbox_of_service)

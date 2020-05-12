@@ -4,7 +4,6 @@ import util
 from sqlalchemy import create_engine
 from data_access.DataUpdateException import DataUpdateException
 from data_access.NotFoundServicesId import NotFoundServicesId
-from pandas import read_sql_query
 
 '''
     Modulo de acesso e persistência de dados no banco de dados 
@@ -61,7 +60,7 @@ def persist_feature_type(data_frame):
         data_frame.to_sql(name='feature_type', con=engine, if_exists='append', index=True, index_label='id')
         log.info('Nova tupla em: feature_type')
     except Exception as e:
-        log.error('Falha ao salvar DataFrame em registro')
+        log.error('Falha ao salvar DataFrame em feature_type')
         log.error(f'Detalhes: {e}')
         print(data_frame)
         log.error(f'DataFrame:\n{data_frame.tail(5)}')
@@ -83,11 +82,10 @@ def find_all_services_id():
 def create_bounding_box_of_service(service_id):
     sql = f"""
     select ST_Extent(p.geom) from place p, (
-		select bounding_box_xmin as xmin, bounding_box_ymin as ymin, bounding_box_xmax as xmax,
-		 bounding_box_ymax as ymax from feature_type ft where service_id ilike '{service_id}'
-	) as bbox 
+		select geometry as geom from feature_type ft where service_id ilike '{service_id}'
+	) as list_ft 
 	where p.tipo ilike 'município' and
-	 ST_Intersects(p.geom, ST_MakeEnvelope(bbox.xmin, bbox.ymin, bbox.xmax, bbox.ymax))
+	 ST_Intersects(p.geom, list_ft.geom)
     """
     bbox = engine.execute(sql).fetchall()
     return util.bounding_box_from_tuple(bbox)
@@ -95,10 +93,22 @@ def create_bounding_box_of_service(service_id):
 
 def update_service(service_id, bbox):
     try:
-        result = engine.execute(f"UPDATE service SET bounding_box_xmin = {bbox[0]}, bounding_box_ymin = {bbox[1]},"
-                                f"bounding_box_xmax = {bbox[2]}, bounding_box_ymax = {bbox[3]} "
+        result = engine.execute(f"UPDATE service SET geometry = ST_MakeEnvelope({bbox[0]}, {bbox[1]},"
+                                f"{bbox[2]}, {bbox[3]}) "
                                 f"WHERE id ilike '{service_id}'")
         return result
     except Exception as e:
-        raise
+        raise e
+
+
+def create_geometry(bounding_box_xmin, bounding_box_ymin, bounding_box_xmax, bounding_box_ymax):
+    result = engine.execute(f"SELECT ST_MakeEnvelope({bounding_box_xmin}, {bounding_box_ymin}, {bounding_box_xmax}, {bounding_box_ymax})").fetchall()
+    return result[0][0]
+
+
+def exists_feature_type(feature_type):
+    result = engine.execute(f"SELECT * FROM feature_type WHERE title ilike '{feature_type['title']}' "
+                            f"and description ilike '{feature_type['description']}' and "
+                            f"keywords ilike '{feature_type['keywords']}'")
+    return result.rowcount > 0
 
