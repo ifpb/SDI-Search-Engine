@@ -113,3 +113,9 @@ def uf_contains_place(place):
     """
     result = engine.execute(query).fetchall()
     return result[0]
+
+def all_data_feature_type():
+    query = """
+        SELECT title, name, description, start_date, end_date FROM feature_type
+    """
+    return engine.execute(query).fetchall()
