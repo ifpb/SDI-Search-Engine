@@ -22,6 +22,48 @@ warnings.simplefilter(action='ignore', category=FutureWarning)
 log = util.get_logger()
 
 
+TYPE_SERVICE = 1
+
+
+def find_date(data, type=1):
+    # search for dates in text
+    if data['title'] is not None:
+        result = tagging_temporal.find_date(data['title'])
+        if result is None:
+            if data['description'] is not None:
+                result = tagging_temporal.find_date(data['description'])
+                if result is not None:
+                    log.info('TAGGING - date in description')
+                    log.info(str(result['start_date']) + " - " + str(result['end_date']))
+                    data['start_date'] = datetime.datetime.strptime(result['start_date'], '%d/%m/%Y').date()
+                    data['end_date'] = datetime.datetime.strptime(result['end_date'], '%d/%m/%Y').date()
+                else:
+                    if type != 1:
+                        if data['keywords'] is not None:
+                            result = tagging_temporal.find_date(data['keywords'])
+                            if result is not None:
+                                log.info('TAGGING - date in keywords')
+                                log.info(str(result['start_date']) + " - " + str(result['end_date']))
+                                data['start_date'] = datetime.datetime.strptime(result['start_date'], '%d/%m/%Y').date()
+                                data['end_date'] = datetime.datetime.strptime(result['end_date'], '%d/%m/%Y').date()
+                            else:
+                                log.info('TAGGING - feature type without date')
+        else:
+            log.info('TAGGING - date in title')
+            log.info(str(result['start_date']) + " - " + str(result['end_date']))
+            data['start_date'] = datetime.datetime.strptime(result['start_date'], '%d/%m/%Y').date()
+            data['end_date'] = datetime.datetime.strptime(result['end_date'], '%d/%m/%Y').date()
+    return data
+
+
+def find_date_in_service_metadata(service_date, date_attribute):
+    result = tagging_temporal.find_date(date_attribute)
+    if result is not None:
+        service_date['start_date'] = datetime.datetime.strptime(result['start_date'], '%d/%m/%Y').date()
+        service_date['end_date'] = datetime.datetime.strptime(result['end_date'], '%d/%m/%Y').date()
+    return service_date
+
+
 def persist_feature_type(content, service_id):
     '''Percorre todos as feições do serviço para armazenar no banco'''
     try:
@@ -35,7 +77,7 @@ def persist_feature_type(content, service_id):
             'end_date': None,
             'geometry': ''
         }
-        columns = ['title', 'name', 'description', 'keywords', 'service_id', 'start_date', 'end_date', 'geometry']
+        columns = ['title', 'name', 'description', 'keywords', 'service_id', 'geometry', 'start_date', 'end_date']
         log.info("quantidade de ft: " + str(len(content)))
         for featureType in content:
             data['title'] = util.process_escape_character(content[featureType].title)
@@ -44,32 +86,7 @@ def persist_feature_type(content, service_id):
                 data['keywords'] = util.process_escape_character(
                     ','.join(content[featureType].keywords))
             data['description'] = util.process_escape_character(content[featureType].abstract)
-            # search for dates in text
-            if data['title'] is not None:
-                result = tagging_temporal.find_date(data['title'])
-                if result is None:
-                    if data['description'] is not None:
-                        result = tagging_temporal.find_date(data['description'])
-                        if result is not None:
-                            log.info('TAGGING - date in description')
-                            log.info(str(result['start_date']) + " - " + str(result['end_date']))
-                            data['start_date'] = datetime.datetime.strptime(result['start_date'], '%d/%m/%Y').date()
-                            data['end_date'] = datetime.datetime.strptime(result['end_date'], '%d/%m/%Y').date()
-                        else:
-                            if data['keywords'] is not None:
-                                result = tagging_temporal.find_date(data['keywords'])
-                                if result is not None:
-                                    log.info('TAGGING - date in keywords')
-                                    log.info(str(result['start_date']) + " - " + str(result['end_date']))
-                                    data['start_date'] = datetime.datetime.strptime(result['start_date'], '%d/%m/%Y').date()
-                                    data['end_date'] = datetime.datetime.strptime(result['end_date'], '%d/%m/%Y').date()
-                                else:
-                                    log.info('TAGGING - feature type without date')
-                else:
-                    log.info('TAGGING - date in title')
-                    log.info(str(result['start_date']) + " - " + str(result['end_date']))
-                    data['start_date'] = datetime.datetime.strptime(result['start_date'], '%d/%m/%Y').date()
-                    data['end_date'] = datetime.datetime.strptime(result['end_date'], '%d/%m/%Y').date()
+            data = find_date(data)
             if not data_access.exists_feature_type(data):
                 if content[featureType].boundingBox is not None:
                     data['geometry'] = data_access.create_geometry(
@@ -95,7 +112,7 @@ def persist_wms_service(url_record, record, catalogue_id, url_wfs=None):
             '''Só persisti o registro caso a requisição para o serviço de certo'''
             register_id = persist_register(record, catalogue_id)
             columns = ['wfs_url', 'wms_url', 'service_processed',
-                       'title', 'description', 'publisher', 'register_id', 'geometry']
+                       'title', 'description', 'publisher', 'register_id', 'geometry', 'start_date', 'end_date']
             data = {
                 'wms_url': wms.url,
                 'service_processed': 'OGC:WMS',
@@ -104,6 +121,8 @@ def persist_wms_service(url_record, record, catalogue_id, url_wfs=None):
                 'publisher': util.process_escape_character(
                     wms.provider.contact.organization),
                 'register_id': register_id,
+                'start_date': None,
+                'end_date': None
             }
             if url_wfs is not None:
                 data['wfs_url'] = url_wfs
@@ -114,6 +133,9 @@ def persist_wms_service(url_record, record, catalogue_id, url_wfs=None):
                 data['publisher'] = util.process_escape_character(record.publisher)
             else:
                 data['publisher'] = None
+            data = find_date(data, TYPE_SERVICE)
+            if data['start_date'] and data['end_date'] is None:
+                data = find_date_in_service_metadata(data, record.date)
             service_id = uuid.uuid4()
             persist_feature_type(wms.contents, service_id.__str__())
             df = DataFrame(data=data, columns=columns, index=[service_id])
@@ -134,13 +156,15 @@ def persist_wfs_service(url_record, record, catalogue_id):
         '''Só persisti o registro caso a requisição para o serviço de certo'''
         register_id = persist_register(record, catalogue_id)
         columns = ['wfs_url', 'wms_url', 'service_processed',
-                   'title', 'description', 'publisher', 'register_id', 'geometry']
+                   'title', 'description', 'publisher', 'register_id', 'start_date', 'end_date', 'geometry']
         data = {
             'wfs_url': wfs.url,
             'service_processed': 'OGC:WFS',
             'title': util.process_escape_character(record.title),
             'description': util.process_escape_character(record.abstract),
-            'register_id': register_id
+            'register_id': register_id,
+            'start_date': None,
+            'end_date': None,
         }
         '''Verificando se existe os atributos de publisher'''
         if dir(wfs.provider).__contains__('contact') and dir(wfs.provider.contact).__contains__('organization'):
@@ -150,6 +174,9 @@ def persist_wfs_service(url_record, record, catalogue_id):
             data['publisher'] = util.process_escape_character(record.publisher)
         else:
             data['publisher'] = None
+        data = find_date(data, TYPE_SERVICE)
+        if data['start_date'] and data['end_date'] is None:
+            data = find_date_in_service_metadata(data, record.date)
         service_id = uuid.uuid4()
         persist_feature_type(wfs.contents, service_id.__str__())
         df = DataFrame(data=data, columns=columns, index=[service_id])

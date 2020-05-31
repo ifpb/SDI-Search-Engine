@@ -37,7 +37,7 @@ def find_place_in_level_service(place_name, is_place_id=False):
         app_log.info("place by id")
     #
     all_services = data_access.find_all_services()
-    result = []
+    result = {}
     if len(all_services) > 0:
         for service in all_services:
             service_round = build_service(service)
@@ -53,10 +53,8 @@ def find_place_in_level_service(place_name, is_place_id=False):
                         if service_round["quantity"] > 0:
                             service_round["similarity"] = service_round["sum_similarity"] / len(list_of_features)
                             app_log.info("Serviço relacionado similarity total: " +
-                                         str(service_round["similarity"]) + " quantidade: " +
-                                         str(service_round["quantity"]) + " título " + service_round["title"] +
-                                         " id: " + service_round["id"])
-                            result.append(service_round)
+                                         str(service_round["similarity"]) + " id: " + service_round["id"])
+                            result[service_round["id"]] = service_round['similarity']
         app_log.info('quantidade final: '+str(len(result)))
         return result
     else:
@@ -74,17 +72,17 @@ def find_place_in_level_feature_type(place_name, is_place_id=False):
     #
     all_services = data_access.find_all_services()
     if len(all_services) > 0:
-        result = []
+        result = {}
         for service in all_services:
             if data_access.verify_intersect(service[0], place[2]):
                 app_log.info('service id: ' + service[1])
-                list_of_features = data_access.feature_types_of_service_all_data(service)
+                list_of_features = data_access.feature_types_of_service_id_geom(service)
                 app_log.info('total de ft do service: ' + str(len(list_of_features)))
                 if len(list_of_features) > 0:
                     features_intersects = intersection_with_place(list_of_features, place)
                     app_log.info('total de ft que intersectam com o place: ' + str(len(features_intersects)))
                     if len(features_intersects) > 0:
-                        result += calculate_similarity_of_feature_type(features_intersects, place)
+                        result = calculate_similarity_of_feature_type(features_intersects, place, result)
         app_log.info('quantidade final: '+str(len(result)))
         return result
     else:
@@ -95,9 +93,7 @@ def find_place_in_level_feature_type(place_name, is_place_id=False):
 def services_with_similarity(features_intersects, place, service_round):
     """calculate the similarity between two geometry"""
     for feature in features_intersects:
-        app_log.info('start calcule')
         similarity = data_access.calcule_tversky(place[2], feature[0])
-        app_log.info('end calcule')
         if similarity > SIMILARITY_MIN:
             service_round["quantity"] += 1
             service_round["sum_similarity"] += similarity
@@ -115,26 +111,20 @@ def intersection_with_place(list_of_features, place):
     return features_intersects
 
 
-def calculate_similarity_of_feature_type(features_intersects, place):
+def calculate_similarity_of_feature_type(features_intersects, place, result):
     """calculate the similarity between the place and feature type"""
-    features = []
     for feature in features_intersects:
         app_log.info('id of the feature: ' + feature[1])
         similarity = data_access.calcule_tversky(place[2], feature[0])
         if similarity > SIMILARITY_MIN:
             app_log.info("------> feature: " + feature[1] + " similarity: " + str(similarity))
-            features.append(build_feature_type(feature, similarity))
-    return features
+            result[feature[1]] = similarity
+    return result
 
 
 def build_service(service):
     service_round = {
         "id": service[1],
-        "url": service[2],
-        "type": service[3],
-        "title": service[4],
-        "description": service[5],
-        "publisher": service[6],
         "quantity": 0,
         "similarity": 0,
         "sum_similarity": 0

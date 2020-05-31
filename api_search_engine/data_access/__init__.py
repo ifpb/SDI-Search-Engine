@@ -51,14 +51,10 @@ def find_services_contains_place(place_geometry):
 
 def find_all_services():
     query = """
-        SELECT geometry, id, wfs_url, wms_url, service_processed, title, description, publisher FROM service WHERE geometry is not null 
+        SELECT geometry, id FROM service WHERE geometry is not null 
     """
     result = engine.execute(query).fetchall()
-    list_all_services = []
-    if len(result) > 0:
-        for s in result:
-            list_all_services.append((s[0], s[1], s[2], s[3], s[4], s[5], s[6]))
-    return list_all_services
+    return result
 
 
 def calcule_tversky(service_geometry, place_geometry):
@@ -106,6 +102,20 @@ def feature_types_of_service_all_data(service):
     return engine.execute(query).fetchall()
 
 
+def feature_types_of_service_id_geom(service):
+    query = f"""
+            SELECT geometry as geom, id from feature_type ft WHERE ft.service_id ilike '{service[1]}'
+        """
+    return engine.execute(query).fetchall()
+
+
+def service_id_dates():
+    query = f"""
+            SELECT id, start_date, end_date from service
+        """
+    return engine.execute(query).fetchall()
+
+
 def uf_contains_place(place):
     query = f"""
         SELECT nome FROM place WHERE ST_Contains(geom::geometry, '{place}'::geometry) 
@@ -114,8 +124,29 @@ def uf_contains_place(place):
     result = engine.execute(query).fetchall()
     return result[0]
 
-def all_data_feature_type():
+
+def feature_type_id_dates():
     query = """
-        SELECT title, name, description, start_date, end_date FROM feature_type
+        SELECT id, start_date, end_date FROM feature_type
     """
+    return engine.execute(query).fetchall()
+
+
+def retrieve_services(services):
+    query = """
+        SELECT wfs_url, wms_url, service_processed, title, description, publisher, start_date, end_date FROM SERVICE WHERE 
+    """
+    for s in services:
+        query += f"id ilike '{s}' or "
+    query = query[0:-4]
+    return engine.execute(query).fetchall()
+
+
+def retrieve_features_types(features):
+    query = """
+            SELECT title, description, keywords, start_date, end_date FROM feature_type WHERE 
+        """
+    for f in features:
+        query += f"id ilike '{f}' or "
+    query = query[0:-4]
     return engine.execute(query).fetchall()
