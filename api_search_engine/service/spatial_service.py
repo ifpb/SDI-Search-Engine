@@ -28,7 +28,7 @@ def find_place(place_name):
         raise HttpNotFound
 
 
-def find_place_in_level_service(place_name, is_place_id=False):
+def find_place_in_level_service(place_name, data, is_place_id=False):
     """search for services with associate locale"""
     if not is_place_id:
         place = find_place(place_name)
@@ -37,7 +37,6 @@ def find_place_in_level_service(place_name, is_place_id=False):
         app_log.info("place by id")
     #
     all_services = data_access.find_all_services()
-    result = {}
     if len(all_services) > 0:
         for service in all_services:
             service_round = build_service(service)
@@ -54,15 +53,14 @@ def find_place_in_level_service(place_name, is_place_id=False):
                             service_round["similarity"] = service_round["sum_similarity"] / len(list_of_features)
                             app_log.info("Serviço relacionado similarity total: " +
                                          str(service_round["similarity"]) + " id: " + service_round["id"])
-                            result[service_round["id"]] = service_round['similarity']
-        app_log.info('quantidade final: '+str(len(result)))
-        return result
+                            data[service_round["id"]] = service_round['similarity']
+        app_log.info('quantidade final: '+str(len(data)))
     else:
         app_log.info("not find services")
         raise HttpNotContent
 
 
-def find_place_in_level_feature_type(place_name, is_place_id=False):
+def find_place_in_level_feature_type(place_name, data, is_place_id=False):
     """search for features types with associate locale"""
     if not is_place_id:
         place = find_place(place_name)
@@ -72,7 +70,6 @@ def find_place_in_level_feature_type(place_name, is_place_id=False):
     #
     all_services = data_access.find_all_services()
     if len(all_services) > 0:
-        result = {}
         for service in all_services:
             if data_access.verify_intersect(service[0], place[2]):
                 app_log.info('service id: ' + service[1])
@@ -82,9 +79,8 @@ def find_place_in_level_feature_type(place_name, is_place_id=False):
                     features_intersects = intersection_with_place(list_of_features, place)
                     app_log.info('total de ft que intersectam com o place: ' + str(len(features_intersects)))
                     if len(features_intersects) > 0:
-                        result = calculate_similarity_of_feature_type(features_intersects, place, result)
-        app_log.info('quantidade final: '+str(len(result)))
-        return result
+                        calculate_similarity_of_feature_type(features_intersects, place, data)
+        app_log.info('quantidade final: '+str(len(data)))
     else:
         app_log.info("not find services")
         raise HttpNotContent
@@ -111,15 +107,14 @@ def intersection_with_place(list_of_features, place):
     return features_intersects
 
 
-def calculate_similarity_of_feature_type(features_intersects, place, result):
+def calculate_similarity_of_feature_type(features_intersects, place, data):
     """calculate the similarity between the place and feature type"""
     for feature in features_intersects:
         app_log.info('id of the feature: ' + feature[1])
         similarity = data_access.calcule_tversky(place[2], feature[0])
         if similarity > SIMILARITY_MIN:
             app_log.info("------> feature: " + feature[1] + " similarity: " + str(similarity))
-            result[feature[1]] = similarity
-    return result
+            data[feature[1]] = similarity
 
 
 def build_service(service):

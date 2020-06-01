@@ -1,14 +1,23 @@
-from multiprocessing import Process, Queue
+from multiprocessing import Process, Manager
 
-def f(q):
-    q.put(34)
+
+def f(d, l, name):
+    print(name)
+    d[1] = '1'
+    d['2'] = 2
+    d[0.25] = None
+    l.reverse()
 
 
 if __name__ == '__main__':
-    q = Queue()
-    p = Process(target=f, args=(q,))
-    p.start()
-    q.put(22)
-    print(q.get())    # prints "[42, None, 'hello']"
-    print(q.get())    # prints "[42, None, 'hello']"
-    p.join()
+    with Manager() as manager:
+        name = {1: 'leanderson', 2: 'lucas'}
+        d = manager.dict()
+        l = manager.list(range(10))
+
+        p = Process(target=f, args=(d, l, name))
+        p.start()
+        p.join()
+
+        print(d)
+        print(l)

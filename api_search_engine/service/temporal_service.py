@@ -114,31 +114,27 @@ def tversky(a_start_date, a_end_date, b_start_date, b_end_date):
     return None
 
 
-def features_intersects_dates(data):
+def features_intersects_dates(data, data_dict):
     split = data['start_date'].split('-')
     start_date = datetime.date(int(split[0]), int(split[1]), int(split[2]))
     split = data['end_date'].split('-')
     end_date = datetime.date(int(split[0]), int(split[1]), int(split[2]))
     all_features = data_access.feature_type_id_dates()
-    features_intersects = {}
     for feature in all_features:
         if feature['start_date'] is not None and feature['end_date'] is not None:
             if intersection(start_date, end_date, feature['start_date'], feature['end_date']) is not None:
                 similarity = tversky(start_date, end_date, feature['start_date'], feature['end_date'])
-                features_intersects[feature['id']] = similarity
-    return features_intersects
+                data_dict[feature['id']] = similarity
 
 
-def services_intersects_dates(data):
+def services_intersects_dates(data, data_dict):
     split = data['start_date'].split('-')
     start_date = datetime.date(int(split[0]), int(split[1]), int(split[2]))
     split = data['end_date'].split('-')
     end_date = datetime.date(int(split[0]), int(split[1]), int(split[2]))
     all_services = data_access.service_id_dates()
-    services_intersects = {}
     for service in all_services:
         if service['start_date'] is not None and service['end_date'] is not None:
             if intersection(start_date, end_date, service['start_date'], service['end_date']):
-                similiraty = tversky(start_date, end_date, service['start_date'], service['end_date'])
-                services_intersects[service['id']] = similiraty
-    return services_intersects
+                similarity = tversky(start_date, end_date, service['start_date'], service['end_date'])
+                data_dict[service['id']] = similarity

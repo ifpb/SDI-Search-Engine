@@ -90,7 +90,7 @@ def find_feature_types():
     except HttpNotContent as e:
         return make_response(jsonify(e.message), e.code)
     except Exception as e:
-        return make_response(), 400
+        return make_response(e.__str__()), 400
 
 
 @app.route('/find/service', methods=['POST'])
@@ -105,8 +105,8 @@ def find_services():
         return jsonify(spatial_service.retrieve_all_places(e.data)), 300
     except HttpNotContent as e:
         return make_response(jsonify(e.message), e.code)
-    except:
-        return make_response(), 400
+    except Exception as e:
+        return make_response(e.__str__()), 400
 
 
 @app.route('/retrieve/service', methods=['POST'])
