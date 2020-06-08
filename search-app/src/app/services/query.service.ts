@@ -1,7 +1,6 @@
 import { environment } from './../../environments/environment';
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { first } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root'
@@ -12,17 +11,18 @@ export class QueryService {
 
   constructor(
     private http: HttpClient
-  ) {}
+  ) { }
 
-  findServices(placeName){
-    return this.http.post(this.API + '/find-place/level-service/', {'place-name': placeName}).toPromise();
+  buildBody(name: string, startDate: string, endDate: string, theme: string) {
+    return {
+      place_name: name,
+      start_date: startDate,
+      end_date: endDate,
+      theme,
+    };
   }
 
-  findeFeaturesTypes(placeName){
-    return this.http.post(this.API + '/find-place/level-feature-type/', {'place-name': placeName}).toPromise();
-  }
-
-  choicePlace(choice: any, level: string){
-    return this.http.post(this.API + '/find-place/choice?level=' + level, {'choice': choice}).toPromise();
+  choicePlace(choice: any, level: string) {
+    return this.http.post(this.API + '/find-place/choice?level=' + level, { 'choice': choice }).toPromise();
   }
 }

@@ -1,7 +1,8 @@
-import { CHOICE_LEVEL } from './../../model/service';
+import { ServiceService } from './../../services/service.service';
+import { CHOICE_LEVEL } from './../../model/model';
 import { QueryService } from './../../services/query.service';
 import { Component, OnInit } from '@angular/core';
-import { ServiceResponse, Service } from 'src/app/model/service';
+import { ServiceResponse, Service } from 'src/app/model/model';
 import { HttpErrorResponse } from '@angular/common/http';
 
 @Component({
@@ -11,8 +12,8 @@ import { HttpErrorResponse } from '@angular/common/http';
 })
 export class ServicesQueryComponent implements OnInit {
 
-  search: string = "";
-  blocked_button: boolean = false;
+  search: string = '';
+  blockedButton: boolean = false;
   services: Service[];
   error: string;
   choices: any[];
@@ -25,7 +26,8 @@ export class ServicesQueryComponent implements OnInit {
   time: Date;
 
   constructor(
-    private queryService: QueryService
+    private queryService: QueryService,
+    private serviceService: ServiceService,
   ) { }
 
   ngOnInit() {
@@ -35,9 +37,9 @@ export class ServicesQueryComponent implements OnInit {
 
   searchServices() {
     this.initSearch();
-    this.queryService.findServices(this.search).then((services: any) => {
+    this.serviceService.findServices(this.search).then((services: any) => {
       this.services = services;
-      this.services.sort((a, b) => {return b.similarity - a.similarity});
+      this.services.sort((a, b) => b.similarity - a.similarity);
       this.afterRequest(services);
     }).catch((err: HttpErrorResponse) => {
       console.log('falha no req', err);
@@ -54,36 +56,37 @@ export class ServicesQueryComponent implements OnInit {
           break;
       }
     }).finally(() => {
-      this.blocked_button = false;
+      this.blockedButton = false;
     });
   }
 
-  initSearch(){
-    if(this.services && this.services.length > 0)
+  initSearch() {
+    if (this.services && this.services.length > 0) {
       this.services = null;
+    }
     console.log(this.search);
     this.error = '';
-    this.blocked_button = true;
+    this.blockedButton = true;
     this.choices = null;
     this.time = new Date();
-    console.log(this.time.getMinutes() + " - " + this.time.getSeconds());
+    console.log(this.time.getMinutes() + ' - ' + this.time.getSeconds());
   }
 
-  afterRequest(services){
+  afterRequest(services) {
     console.log(services);
     this.time = new Date();
-    console.log(this.time.getMinutes() + " - " + this.time.getSeconds())
+    console.log(this.time.getMinutes() + ' - ' + this.time.getSeconds())
   }
 
-  selectChoice(item: any){
+  selectChoice(item: any) {
     this.initSearch();
     this.queryService.choicePlace(item, CHOICE_LEVEL.SERVICE).then((services: Service[]) => {
       this.services = services;
       this.afterRequest(services);
     }).catch(err => console.log(err))
-    .finally(() => {
-      this.blocked_button = false;
-    });
+      .finally(() => {
+        this.blockedButton = false;
+      });
   }
 
 }

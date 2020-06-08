@@ -1,23 +1,22 @@
-from multiprocessing import Process, Manager
+class MyEx(Exception):
+
+    def __init__(self, message, data):
+        self.message = message
+        self.data = data
 
 
-def f(d, l, name):
-    print(name)
-    d[1] = '1'
-    d['2'] = 2
-    d[0.25] = None
-    l.reverse()
+
+
+def calcular(a, b):
+    if a + b == 4:
+        a = MyEx('falha', [2, 3, 4,])
+        raise a
+    else:
+        print("safe")
 
 
 if __name__ == '__main__':
-    with Manager() as manager:
-        name = {1: 'leanderson', 2: 'lucas'}
-        d = manager.dict()
-        l = manager.list(range(10))
-
-        p = Process(target=f, args=(d, l, name))
-        p.start()
-        p.join()
-
-        print(d)
-        print(l)
+    try:
+        calcular(2, 2)
+    except Exception as e:
+        print(e)
