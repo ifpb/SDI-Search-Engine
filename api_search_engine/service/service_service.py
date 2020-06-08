@@ -13,33 +13,33 @@ def find(filters, is_place_id=False):
         temporal_process = None
 
         if filters.__contains__('place_name') and filters['place_name'] != '':
-            app_log.info('SERVICE -> filter spatial')
+            app_log.info('SERVICE of SERVICE -> filter spatial')
             spatial_service = SpatialService()
             query_spatial = manager.dict()
             exception_spatial = manager.dict()
             spatial_process = Process(target=spatial_service.find_place_in_level_service,
                                       args=(filters['place_name'], query_spatial, exception_spatial, is_place_id))
-            app_log.info('SERVICE -> start spatial process')
+            app_log.info('SERVICE of SERVICE -> start spatial process')
             spatial_process.start()
         if filters.__contains__('start_date') and filters['start_date'] != '' and filters.__contains__('end_date') and \
                 filters['end_date'] != '':
-            app_log.info('SERVICE -> filter temporal')
+            app_log.info('SERVICE of SERVICE -> filter temporal')
             temporal_service = TemporalService()
             query_temporal = manager.dict()
             temporal_process = Process(target=temporal_service.services_intersects_dates,
                                        args=(filters, query_temporal))
-            app_log.info('SERVICE -> start temporal process')
+            app_log.info('SERVICE of SERVICE -> start temporal process')
             temporal_process.start()
         if filters.__contains__('theme') and filters['theme'] != '':
-            app_log.info('SERVICE -> consulta com tema')
+            app_log.info('SERVICE of SERVICE -> consulta com tema')
 
         if spatial_process is not None:
             spatial_process.join()
-            app_log.info('SERVICE -> join spatial process')
+            app_log.info('SERVICE of SERVICE -> join spatial process')
 
         if temporal_process is not None:
             temporal_process.join()
-            app_log.info('SERVICE -> join temporal process')
+            app_log.info('SERVICE of SERVICE -> join temporal process')
 
         if spatial_process is not None:
             if exception_spatial.keys().__contains__('exception'):

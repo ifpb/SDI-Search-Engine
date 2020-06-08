@@ -13,7 +13,7 @@ class SpatialService(object):
         self.DataAccess = DataAccess()
         
     def __del__(self):
-        self.app_log.info('SERVICE -> delete SpatialService')
+        self.app_log.info('SPATIAL SERVICE ->   delete SpatialService')
         self.DataAccess.close_engine_connections()
 
     def find_place(self, place_name):
@@ -23,12 +23,12 @@ class SpatialService(object):
             if len(place) == 1:
                 return place[0]
             else:
-                self.app_log.info("more one places")
+                self.app_log.info('SPATIAL SERVICE -> more one places')
                 e = mc.MultipleChoices()
                 e.data = place
                 raise e
         else:
-            self.app_log.info("not find place")
+            self.app_log.info('SPATIAL SERVICE -> not find place')
             raise HttpNotFound
 
     def find_place_in_level_service(self, place_name, data, exception, is_place_id=False):
@@ -38,7 +38,7 @@ class SpatialService(object):
                 place = self.find_place(place_name)
             else:
                 place = self.DataAccess.find_place_id(place_name)
-                self.app_log.info("place by id")
+                self.app_log.info('SPATIAL SERVICE -> place by id')
             #
             all_services = self.DataAccess.find_all_services()
             if len(all_services) > 0:
@@ -55,12 +55,12 @@ class SpatialService(object):
                                 service_round = self.services_with_similarity(features_intersects, place, service_round)
                                 if service_round["quantity"] > 0:
                                     service_round["similarity"] = service_round["sum_similarity"] / len(list_of_features)
-                                    self.app_log.info("Serviço relacionado similarity total: " +
-                                                      str(service_round["similarity"]) + " id: " + service_round["id"])
+                                    self.app_log.info('SPATIAL SERVICE ->Serviço relacionado similarity total: ' +
+                                                      str(service_round["similarity"]) + ' id: ' + service_round["id"])
                                     data[service_round["id"]] = service_round['similarity']
-                self.app_log.info('SERVICE -> quantidade final: ' + str(len(data)))
+                self.app_log.info('SPATIAL SERVICE ->   quantidade final: ' + str(len(data)))
             else:
-                self.app_log.info("not find services")
+                self.app_log.info('SPATIAL SERVICE -> not find services')
                 raise HttpNotContent
         except Exception as e:
             exception['exception'] = e
@@ -72,23 +72,23 @@ class SpatialService(object):
                 place = self.find_place(place_name)
             else:
                 place = self.DataAccess.find_place_id(place_name)
-                self.app_log.info("place by id")
+                self.app_log.info('SPATIAL SERVICE -> place by id')
             all_services = self.DataAccess.find_all_services()
             if len(all_services) > 0:
                 for service in all_services:
                     if self.DataAccess.verify_intersect(service[0], place[2]):
-                        self.app_log.info('SERVICE -> service id: ' + service[1])
+                        self.app_log.info('SPATIAL SERVICE ->   service id: ' + service[1])
                         list_of_features = self.DataAccess.feature_types_of_service_id_geom(service)
-                        self.app_log.info('SERVICE -> total de ft do service: ' + str(len(list_of_features)))
+                        self.app_log.info('SPATIAL SERVICE ->   total de ft do service: ' + str(len(list_of_features)))
                         if len(list_of_features) > 0:
                             features_intersects = self.intersection_with_place(list_of_features, place)
                             self.app_log.info(
                                 'total de ft que intersectam com o place: ' + str(len(features_intersects)))
                             if len(features_intersects) > 0:
                                 self.calculate_similarity_of_feature_type(features_intersects, place, data)
-                self.app_log.info('SERVICE -> quantidade final: ' + str(len(data)))
+                self.app_log.info('SPATIAL SERVICE ->   quantidade final: ' + str(len(data)))
             else:
-                self.app_log.info("not find services")
+                self.app_log.info('SPATIAL SERVICE -> not find services')
                 raise HttpNotContent
         except Exception as e:
             exception['exception'] = e
@@ -100,8 +100,8 @@ class SpatialService(object):
             if similarity > self.SIMILARITY_MIN:
                 service_round["quantity"] += 1
                 service_round["sum_similarity"] += similarity
-                self.app_log.info("-------> similarity of feature: " + str(similarity))
-                self.app_log.info("-------> feature_id: " + feature[1])
+                self.app_log.info('SPATIAL SERVICE -> -------> similarity of feature: ' + str(similarity))
+                self.app_log.info('SPATIAL SERVICE -> -------> feature_id: ' + feature[1])
         return service_round
 
     def intersection_with_place(self, list_of_features, place):
@@ -115,10 +115,10 @@ class SpatialService(object):
     def calculate_similarity_of_feature_type(self, features_intersects, place, data):
         """calculate the similarity between the place and feature type"""
         for feature in features_intersects:
-            self.app_log.info('SERVICE -> id of the feature: ' + feature[1])
+            self.app_log.info('SPATIAL SERVICE ->   id of the feature: ' + feature[1])
             similarity = self.DataAccess.calcule_tversky(place[2], feature[0])
             if similarity > self.SIMILARITY_MIN:
-                self.app_log.info("------> feature: " + feature[1] + " similarity: " + str(similarity))
+                self.app_log.info('SPATIAL SERVICE -> ------> feature: ' + feature[1] + ' similarity: ' + str(similarity))
                 data[feature[1]] = similarity
 
     def build_service(self, service):

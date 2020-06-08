@@ -22,7 +22,7 @@ def filter_result_of_dict(list_of_dict):
                     count += 1
                     sum_similarity += d[i]
             if count == FILTERS_LENGTH:
-                app_log.info('Common resources: ' + i)
+                app_log.info('UTIL -> Common resources: ' + i)
                 similarity = sum_similarity / FILTERS_LENGTH
                 result.append(build_item_result(i, similarity))
     else:
