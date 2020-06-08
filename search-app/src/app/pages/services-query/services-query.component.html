@@ -40,7 +40,7 @@
                 <div class="input-group-prepend">
                   <span class="input-group-text" id="basic-addon3">Entre:</span>
                 </div>
-                <input type="text" class="form-control" aria-describedby="basic-addon3">
+                <input [(ngModel)]="startDate" type="text" class="form-control" aria-describedby="basic-addon3">
               </div>
             </div>
             <div class="col nopadding">
@@ -48,7 +48,7 @@
                 <div class="input-group-prepend">
                   <span class="input-group-text" id="basic-addon4">e:</span>
                 </div>
-                <input type="text" class="form-control" aria-describedby="basic-addon4">
+                <input [(ngModel)]="endDate" type="text" class="form-control" aria-describedby="basic-addon4">
               </div>
             </div>
           </div>
@@ -56,7 +56,8 @@
         <!-- BUTTON SEARCH -->
         <div class="row">
           <div class="col offset-md-9">
-            <button [disabled]="blockedButton" (click)="searchServices()" type="button" class="btn btn-primary">Pesquisar</button>
+            <button [disabled]="blockedButton" (click)="searchServices()" type="button"
+              class="btn btn-primary">Pesquisar</button>
           </div>
         </div>
       </div>
@@ -93,26 +94,28 @@
   <!-- RESULTADO -->
   <div *ngIf="services" class="accordion" id="accordionExample">
     <div *ngIf="error === '' && services">
-      <h3>Total de serviços encontrados: {{ services.length }}</h3>
+      <h3>Total de serviços encontrados: {{ resources.length }}</h3>
     </div>
     <div *ngFor="let service of services | slice: (page-1) * pageSize : (page-1) * pageSize + pageSize">
       <div>
-        <section data-toggle="collapse" [attr.data-target]="'#collapse'+service.id"
-        aria-expanded="false" aria-controls="collapseOne" class="card" class="card-header" id="headingOne">
+        <section data-toggle="collapse" [attr.data-target]="'#collapse'+service.id" aria-expanded="false"
+          aria-controls="collapseOne" class="card" class="card-header" id="headingOne">
           <h5 class="mb-0">
-            <button  class="btn" type="button">
+            <button class="btn" type="button">
               {{ service.title }}
             </button>
           </h5>
         </section>
-        <div [id]="'collapse'+service.id" class="collapse show" aria-labelledby="headingOne" data-parent="#accordionExample">
+        <div [id]="'collapse'+service.id" class="collapse show" aria-labelledby="headingOne"
+          data-parent="#accordionExample">
           <div class="card-body">
-           <p><b>Descrição:</b> {{ service.description }}</p>
-           <p><b>Organização:</b> {{ service.publisher }}</p>
-           <p><b>Tipo:</b> {{ service.type }}</p>
-           <p><b>URL:</b> {{ service.url }}</p>
-           <p><b>Quantidade de features types relacionados:</b> {{ service.quantity }}</p>
-           <p><b>Similaridade do serviço:</b> {{ service.similarity }}</p>
+            <p *ngIf="service.start_date && service.end_date"><b>Período:</b> {{ service.start_date }} - {{ service.end_date }}</p>
+            <p><b>Descrição:</b> {{ service.description }}</p>
+            <p><b>Organização:</b> {{ service.publisher }}</p>
+            <p><b>Tipo:</b> {{ service.service_processed }}</p>
+            <p *ngIf="service.wfs_url"><b>WFS URL:</b> {{ service.wfs_url }}</p>
+            <p *ngIf="service.wms_url"><b>WMS URL:</b> {{ service.wms_url }}</p>
+            <p><b>Similaridade do serviço:</b> {{ service.similarity }}</p>
           </div>
         </div>
       </div>

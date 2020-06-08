@@ -2,12 +2,14 @@
 export class Service {
     constructor(
         public id: string,
-        public title: string,
-        public publisher?: string,
+        public wfs_url: string,
+        public wms_url?: string,
+        public service_processed?: string,
+        public title?: string,
         public description?: string,
-        public type?: string,
-        public url?: string,
-        public quantity?: number,
+        public publisher?: string,
+        public start_date?: string,
+        public end_date?: string,
         public similarity?: number
     ) { }
 }

@@ -56,7 +56,7 @@ export class FeatureTypeQueryComponent implements OnInit {
 
   initSearch() {
     this.page = 1;
-    if (this.features && this.features.length > 0) {
+    if (this.features && this.features.length >= 0) {
       this.features = null;
     }
     this.placeName = this.placeName.trim();
@@ -75,12 +75,12 @@ export class FeatureTypeQueryComponent implements OnInit {
   }
 
   manageData(resources: Resource[]) {
-    this.resources = resources;
-    this.resources.sort((a, b) => b.similarity - a.similarity);
-    const pageResources = this.resources.slice((this.page - 1) * this.pageSize, (this.page - 1) * this.pageSize + this.pageSize);
-    const ids = [];
-    pageResources.forEach(i => ids.push(i.id));
     if (resources && resources.length > 0) {
+      this.resources = resources;
+      this.resources.sort((a, b) => b.similarity - a.similarity);
+      const pageResources = this.resources.slice((this.page - 1) * this.pageSize, (this.page - 1) * this.pageSize + this.pageSize);
+      const ids = [];
+      pageResources.forEach(i => ids.push(i.id));
       this.retrieveService.retrieve(ids, RETRIEVE_TYPE.FEATURE_TYPE).then((features: FeatureType[]) => {
         resources.forEach(r => {
           features = features.map(f => {
@@ -95,6 +95,9 @@ export class FeatureTypeQueryComponent implements OnInit {
       }).catch(err => {
         console.log(err);
       });
+    } else {
+      this.features = [];
+      this.resources = [];
     }
   }
 

@@ -13,7 +13,8 @@ export class ServiceService {
     private http: HttpClient
   ) { }
 
-  findServices(placeName) {
-    return this.http.post(this.API + '/find-place/level-service/', { 'place-name': placeName }).toPromise();
+  findServices(body, isPlaceId: boolean) {
+    const url = isPlaceId ? '/find/service?isPlaceId=true' : '/find/service';
+    return this.http.post(this.API + url, body).toPromise();
   }
 }
