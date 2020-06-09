@@ -134,4 +134,25 @@ export class ServicesQueryComponent implements OnInit {
     });
   }
 
+  async paginationChange(e) {
+    const pageResources = this.resources.slice((e - 1) * this.pageSize, (e - 1) * this.pageSize + this.pageSize);
+    const ids = [];
+    pageResources.forEach(r => ids.push(r.id));
+    this.retrieveService.retrieve(ids, RETRIEVE_TYPE.SERVICE).then((services: Service[]) => {
+      pageResources.forEach(r => {
+        services = services.map(f => {
+          if (f.id === r.id) {
+            return { ...f, similarity: r.similarity };
+          }
+          return f;
+        });
+      });
+      console.log(services);
+      this.services = services;
+      this.services.sort((a, b) => b.similarity - a.similarity);
+    }).catch((err: HttpErrorResponse) => {
+
+    });
+  }
+
 }

@@ -96,7 +96,7 @@
     <div *ngIf="error === '' && services">
       <h3>Total de serviços encontrados: {{ resources.length }}</h3>
     </div>
-    <div *ngFor="let service of services | slice: (page-1) * pageSize : (page-1) * pageSize + pageSize">
+    <div *ngFor="let service of services">
       <div>
         <section data-toggle="collapse" [attr.data-target]="'#collapse'+service.id" aria-expanded="false"
           aria-controls="collapseOne" class="card" class="card-header" id="headingOne">
@@ -121,7 +121,7 @@
       </div>
     </div>
   </div>
-  <div *ngIf="services && services.length > 0">
-    <ngb-pagination [(page)]="page" [pageSize]="pageSize" [collectionSize]="services.length"></ngb-pagination>
+  <div *ngIf="resources && resources.length > 0">
+    <ngb-pagination (pageChange)="paginationChange($event)" [(page)]="page" [pageSize]="pageSize" [collectionSize]="resources.length"></ngb-pagination>
   </div>
 </div>
