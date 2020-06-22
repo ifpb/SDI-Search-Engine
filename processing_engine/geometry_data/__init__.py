@@ -26,3 +26,5 @@ def create_envelop_of_service(service_id):
     bbox_of_service = data_access.create_bounding_box_of_service(service_id)
     log.info(f"atualizando service: {service_id}")
     data_access.update_service(service_id, bbox_of_service)
+    log.info(f"atualizando area do service: {service_id}")
+    data_access.update_area_service(service_id)

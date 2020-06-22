@@ -30,3 +30,11 @@ def process_escape_character(data):
     if data is not None:
         return data.replace('\'', '\'\'')
     return None
+
+
+def build_string_for_solr(fields):
+    result = ''
+    for f in fields:
+        if f is not None:
+            result += ' ' + f + ' '
+    return result

@@ -5,6 +5,7 @@ from owslib.wms import WebMapService
 from owslib.wfs import WebFeatureService
 from requests import ConnectTimeout, ReadTimeout
 
+import tematic
 import util
 import data_access
 import uuid
@@ -64,9 +65,11 @@ def find_date_in_service_metadata(service_date, date_attribute):
     return service_date
 
 
-def persist_feature_type(content, service_id):
+def persist_feature_type(content, service_description, service_id):
     '''Percorre todos as feições do serviço para armazenar no banco'''
     try:
+        all_description = ''
+        features_solr_docs = []
         data = {
             'title': '',
             'name': '',
@@ -75,11 +78,16 @@ def persist_feature_type(content, service_id):
             'service_id': service_id,
             'start_date': None,
             'end_date': None,
-            'geometry': ''
+            'geometry': '',
+            'area': None
         }
-        columns = ['title', 'name', 'description', 'keywords', 'service_id', 'geometry', 'start_date', 'end_date']
+        columns = [
+            'title', 'name', 'description', 'keywords', 'service_id', 'geometry', 'start_date', 'end_date', 'area'
+        ]
         log.info("quantidade de ft: " + str(len(content)))
         for featureType in content:
+            feature_description = ''
+            feature_type_id = uuid.uuid4()
             data['title'] = util.process_escape_character(content[featureType].title)
             data['name'] = util.process_escape_character(featureType)
             if content[featureType].keywords is not None:
@@ -88,17 +96,26 @@ def persist_feature_type(content, service_id):
             data['description'] = util.process_escape_character(content[featureType].abstract)
             data = find_date(data)
             if not data_access.exists_feature_type(data):
+                # tematic index
+                feature_description = util.build_string_for_solr([data['title'], data['description'], data['keywords']])
+                all_description += feature_description
+                feature_description += service_description
+                features_solr_docs.append(tematic.build_doc_solr_feature_type(feature_description, feature_type_id))
+
                 if content[featureType].boundingBox is not None:
                     data['geometry'] = data_access.create_geometry(
                         content[featureType].boundingBox[0],
                         content[featureType].boundingBox[1],
                         content[featureType].boundingBox[2],
                         content[featureType].boundingBox[3])
+                    data['area'] = data_access.geometry_area(data['geometry'])
                 log.info(data)
-                df = DataFrame(data=data, columns=columns, index=[uuid.uuid4()])
+                df = DataFrame(data=data, columns=columns, index=[feature_type_id])
                 data_access.persist_feature_type(df)
             else:
                 log.info('exists feature-> name: ' + data['name'])
+        tematic.add_documents_feature_type(features_solr_docs)
+        return all_description
     except Exception as e:
         raise
 
@@ -112,7 +129,7 @@ def persist_wms_service(url_record, record, catalogue_id, url_wfs=None):
             '''Só persisti o registro caso a requisição para o serviço de certo'''
             register_id = persist_register(record, catalogue_id)
             columns = ['wfs_url', 'wms_url', 'service_processed',
-                       'title', 'description', 'publisher', 'register_id', 'geometry', 'start_date', 'end_date']
+                       'title', 'description', 'publisher', 'register_id', 'geometry', 'start_date', 'end_date', 'area']
             data = {
                 'wms_url': wms.url,
                 'service_processed': 'OGC:WMS',
@@ -122,7 +139,8 @@ def persist_wms_service(url_record, record, catalogue_id, url_wfs=None):
                     wms.provider.contact.organization),
                 'register_id': register_id,
                 'start_date': None,
-                'end_date': None
+                'end_date': None,
+                'area': None
             }
             if url_wfs is not None:
                 data['wfs_url'] = url_wfs
@@ -137,7 +155,13 @@ def persist_wms_service(url_record, record, catalogue_id, url_wfs=None):
             if data['start_date'] and data['end_date'] is None:
                 data = find_date_in_service_metadata(data, record.date)
             service_id = uuid.uuid4()
-            persist_feature_type(wms.contents, service_id.__str__())
+            # tematic index
+            service_description = util.build_string_for_solr(
+                [data['title'], data['description'], data['publisher']]
+            )
+            service_description += persist_feature_type(wms.contents, service_description, service_id.__str__())
+            tematic.add_document_service(service_description, service_id)
+
             df = DataFrame(data=data, columns=columns, index=[service_id])
             data_access.persist_service(df)
             geometry_data.create_envelop_of_service(service_id)
@@ -156,7 +180,7 @@ def persist_wfs_service(url_record, record, catalogue_id):
         '''Só persisti o registro caso a requisição para o serviço de certo'''
         register_id = persist_register(record, catalogue_id)
         columns = ['wfs_url', 'wms_url', 'service_processed',
-                   'title', 'description', 'publisher', 'register_id', 'start_date', 'end_date', 'geometry']
+                   'title', 'description', 'publisher', 'register_id', 'start_date', 'end_date', 'geometry', 'area']
         data = {
             'wfs_url': wfs.url,
             'service_processed': 'OGC:WFS',
@@ -165,6 +189,7 @@ def persist_wfs_service(url_record, record, catalogue_id):
             'register_id': register_id,
             'start_date': None,
             'end_date': None,
+            'area': None
         }
         '''Verificando se existe os atributos de publisher'''
         if dir(wfs.provider).__contains__('contact') and dir(wfs.provider.contact).__contains__('organization'):
@@ -178,7 +203,13 @@ def persist_wfs_service(url_record, record, catalogue_id):
         if data['start_date'] and data['end_date'] is None:
             data = find_date_in_service_metadata(data, record.date)
         service_id = uuid.uuid4()
-        persist_feature_type(wfs.contents, service_id.__str__())
+        # tematic index
+        service_description = util.build_string_for_solr(
+            [data['title'], data['description'], data['publisher']]
+        )
+        service_description += persist_feature_type(wfs.contents, service_description, service_id.__str__())
+        tematic.add_document_service(service_description, service_id)
+
         df = DataFrame(data=data, columns=columns, index=[service_id])
         data_access.persist_service(df)
         geometry_data.create_envelop_of_service(service_id)
@@ -226,7 +257,7 @@ def find_register_of_catalogue(url_catalogue, catalogue_id):
     verificadoWMS = []
     verificadoWFS = []
     csw.getrecords2()
-    i = 20000
+    i = 20500
     # total = csw.results['matches']
     total = 36000
     alternatives_wms = ('OGC:WMS', 'OGC:WMS-1.1.1-http-get-capabilities')

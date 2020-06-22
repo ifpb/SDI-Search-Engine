@@ -101,14 +101,28 @@ def update_service(service_id, bbox):
         raise e
 
 
+def update_area_service(service_id):
+    try:
+        engine.execute(f"UPDATE service SET area = ST_Area(geometry) where id ilike '{service_id}'")
+    except Exception as e:
+        raise e
+
+
 def create_geometry(bounding_box_xmin, bounding_box_ymin, bounding_box_xmax, bounding_box_ymax):
     result = engine.execute(f"SELECT ST_MakeEnvelope({bounding_box_xmin}, {bounding_box_ymin}, {bounding_box_xmax}, {bounding_box_ymax})").fetchall()
     return result[0][0]
 
 
 def exists_feature_type(feature_type):
-    result = engine.execute(f"SELECT * FROM feature_type WHERE title ilike '{feature_type['title']}' "
-                            f"and description ilike '{feature_type['description']}' and "
-                            f"keywords ilike '{feature_type['keywords']}'")
+    query = f"""
+    SELECT * FROM feature_type WHERE title ilike '{feature_type['title']}'
+    and description ilike '{feature_type['description']}' and
+    keywords ilike '{feature_type['keywords']}'
+    """
+    query = query.replace('%', '')
+    result = engine.execute(query)
     return result.rowcount > 0
 
+
+def geometry_area(geometry):
+    return engine.execute(f"SELECT ST_Area('{geometry}'::geometry)").fetchall()[0][0]
