@@ -17,7 +17,7 @@ class DataAccess(object):
 
     def find_place(self, place_name):
         result = self._engine.execute(
-            f"SELECT nome, tipo, geom, gid FROM place WHERE nome ILIKE '{place_name}'").fetchall()
+            f"SELECT nome, tipo, geom, gid, area FROM place WHERE nome ILIKE '{place_name}'").fetchall()
         if len(result) > 0:
             if len(result) > 1:
                 self._app_log.info("DataAccess -> existe mais de um!")
@@ -28,7 +28,7 @@ class DataAccess(object):
             return None
 
     def find_place_id(self, place_id):
-        result = self._engine.execute(f"SELECT nome, tipo, geom, gid FROM place WHERE gid = {place_id}").fetchall()
+        result = self._engine.execute(f"SELECT nome, tipo, geom, gid, area FROM place WHERE gid = {place_id}").fetchall()
         if len(result) > 0:
             if len(result) > 1:
                 self._app_log.info("DataAccess -> existe mais de um!")
@@ -66,9 +66,31 @@ class DataAccess(object):
         result = self._engine.execute(query).fetchall()[0]
         return result["tversky"]
 
+    def features_with_intersects_and_similarity(self, geometry, area):
+        query = f"""
+                    select id, v2similarity(geometry, '{geometry}'::geometry) from feature_type
+                    where ST_Intersects('{geometry}', geometry)
+                """
+        result = self._engine.execute(query).fetchall()
+        self._app_log.info('RESULT : ' + str(len(result)))
+        return result
+
+    def services_with_intersects_and_similarity(self, geometry, area):
+        query = f"""
+            select features.service_id, sum(features.sim) / features.features_of_service as similarity  from (
+                select service_id, similarity(f.geometry, f.area, '{geometry}', {area}) as sim, features_of_service from feature_type f
+                where ST_Intersects(f.geometry, '{geometry}')
+            ) as features group by features.service_id, features.features_of_service
+                """
+        result = self._engine.execute(query).fetchall()
+        self._app_log.info('RESULT: ' + str(len(result)))
+        return result
+
     def verify_intersect(self, geometry1, geometry2):
         query = f"SELECT ST_Intersects('{geometry1}'::geometry, '{geometry2}'::geometry)"
+        self._app_log.info('START VERIFY INTERSECTS')
         result = self._engine.execute(query).fetchall()[0]
+        self._app_log.info('END VERIFY INTERSECTS')
         return result[0]
 
     def verify_intersect_bbox(self, geometry1, feature):
@@ -97,7 +119,15 @@ class DataAccess(object):
         query = f"""
                 SELECT geometry as geom, id from feature_type ft WHERE ft.service_id ilike '{service[1]}'
             """
-        return self._engine.execute(query).fetchall()
+        result = self._engine.execute(query).fetchall()
+        return result
+
+    def len_features_types_of_service(self, service_id):
+        query = f"""
+                SELECT count(*) from feature_type ft WHERE ft.service_id ilike '{service_id}'
+            """
+        result = self._engine.execute(query).fetchall()
+        return result[0][0]
 
     def service_id_dates(self):
         query = f"""

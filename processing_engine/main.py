@@ -70,19 +70,11 @@ def persist_feature_type(content, service_description, service_id):
     try:
         all_description = ''
         features_solr_docs = []
-        data = {
-            'title': '',
-            'name': '',
-            'description': '',
-            'keywords': '',
-            'service_id': service_id,
-            'start_date': None,
-            'end_date': None,
-            'geometry': '',
-            'area': None
-        }
+        data = {'title': '', 'name': '', 'description': '', 'keywords': '', 'service_id': service_id,
+                'start_date': None, 'end_date': None, 'geometry': '', 'area': None, 'features_of_service': len(content)}
         columns = [
-            'title', 'name', 'description', 'keywords', 'service_id', 'geometry', 'start_date', 'end_date', 'area'
+            'title', 'name', 'description', 'keywords', 'service_id', 'geometry',
+            'start_date', 'end_date', 'area', 'features_of_service'
         ]
         log.info("quantidade de ft: " + str(len(content)))
         for featureType in content:

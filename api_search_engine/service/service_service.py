@@ -8,6 +8,7 @@ app_log = log.get_logger()
 
 
 def find(filters, is_place_id=False):
+
     with Manager() as manager:
         spatial_process = None
         temporal_process = None
@@ -17,7 +18,7 @@ def find(filters, is_place_id=False):
             spatial_service = SpatialService()
             query_spatial = manager.dict()
             exception_spatial = manager.dict()
-            spatial_process = Process(target=spatial_service.find_place_in_level_service,
+            spatial_process = Process(target=spatial_service.find_place_in_level_servicev2,
                                       args=(filters['place_name'], query_spatial, exception_spatial, is_place_id))
             app_log.info('SERVICE of SERVICE -> start spatial process')
             spatial_process.start()

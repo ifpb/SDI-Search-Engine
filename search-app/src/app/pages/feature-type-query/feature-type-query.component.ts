@@ -47,6 +47,7 @@ export class FeatureTypeQueryComponent implements OnInit {
     console.log('body', body);
     this.featureService.find(body, false).then((resources: Resource[]) => {
       this.manageData(resources);
+      this.afterRequest();
     }).catch((err: HttpErrorResponse) => {
       this.manageError(err);
     }).finally(() => {
@@ -69,7 +70,6 @@ export class FeatureTypeQueryComponent implements OnInit {
   }
 
   afterRequest() {
-    this.features.sort((a, b) => b.similarity - a.similarity);
     this.time = new Date();
     console.log(this.time.getMinutes() + ' - ' + this.time.getSeconds() + ' - ' + this.time.getMilliseconds());
   }
@@ -126,6 +126,7 @@ export class FeatureTypeQueryComponent implements OnInit {
     };
     this.featureService.find(body, true).then((resources: Resource[]) => {
       this.manageData(resources);
+      this.afterRequest();
     }).catch((err: HttpErrorResponse) => {
       this.manageError(err);
     }).finally(() => {

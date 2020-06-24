@@ -65,6 +65,21 @@ class SpatialService(object):
         except Exception as e:
             exception['exception'] = e
 
+    def find_place_in_level_servicev2(self, place_name, data, exception, is_place_id=False):
+        try:
+            if not is_place_id:
+                place = self.find_place(place_name)
+            else:
+                place = self.DataAccess.find_place_id(place_name)
+                self.app_log.info('SPATIAL SERVICE -> place by id')
+            #
+            result = self.DataAccess.services_with_intersects_and_similarity(place[2], place[4])
+            for r in result:
+                data[r[0]] = r[1]
+            self.app_log.info('SPATIAL SERVICE -> quantidade final: ' + str(len(data)))
+        except Exception as e:
+           exception['exception'] = e
+
     def find_place_in_level_feature_type(self, place_name, data, exception, is_place_id=False):
         """search for features types with associate locale"""
         try:
@@ -72,18 +87,18 @@ class SpatialService(object):
                 place = self.find_place(place_name)
             else:
                 place = self.DataAccess.find_place_id(place_name)
-                self.app_log.info('SPATIAL SERVICE -> place by id')
+                # self.app_log.info('SPATIAL SERVICE -> place by id')
             all_services = self.DataAccess.find_all_services()
             if len(all_services) > 0:
                 for service in all_services:
                     if self.DataAccess.verify_intersect(service[0], place[2]):
-                        self.app_log.info('SPATIAL SERVICE ->   service id: ' + service[1])
+                        # self.app_log.info('SPATIAL SERVICE ->   service id: ' + service[1])
                         list_of_features = self.DataAccess.feature_types_of_service_id_geom(service)
-                        self.app_log.info('SPATIAL SERVICE ->   total de ft do service: ' + str(len(list_of_features)))
+                        # self.app_log.info('SPATIAL SERVICE ->   total de ft do service: ' + str(len(list_of_features)))
                         if len(list_of_features) > 0:
                             features_intersects = self.intersection_with_place(list_of_features, place)
-                            self.app_log.info(
-                                'total de ft que intersectam com o place: ' + str(len(features_intersects)))
+                            # self.app_log.info(
+                            #     'total de ft que intersectam com o place: ' + str(len(features_intersects)))
                             if len(features_intersects) > 0:
                                 self.calculate_similarity_of_feature_type(features_intersects, place, data)
                 self.app_log.info('SPATIAL SERVICE ->   quantidade final: ' + str(len(data)))
@@ -93,10 +108,27 @@ class SpatialService(object):
         except Exception as e:
             exception['exception'] = e
 
+    def find_place_in_level_feature_typev2(self, place_name, data, exception, is_place_id=False):
+        try:
+            self.app_log.info('FIND PLACE')
+            if not is_place_id:
+                place = self.find_place(place_name)
+            else:
+                place = self.DataAccess.find_place_id(place_name)
+            self.app_log.info('PLACE LOADED')
+            result = self.DataAccess.features_with_intersects_and_similarity(place[2], place[4])
+            for r in result:
+                data[r[0]] = r[1]
+        except Exception as e:
+            raise e
+            exception['exception'] = e
+
     def services_with_similarity(self, features_intersects, place, service_round):
         """calculate the similarity between two geometry"""
         for feature in features_intersects:
+            self.app_log.info('START CALCULE SIMILARITY')
             similarity = self.DataAccess.calcule_tversky(place[2], feature[0])
+            self.app_log.info('END CALCULE SIMILARITY')
             if similarity > self.SIMILARITY_MIN:
                 service_round["quantity"] += 1
                 service_round["sum_similarity"] += similarity
@@ -115,10 +147,12 @@ class SpatialService(object):
     def calculate_similarity_of_feature_type(self, features_intersects, place, data):
         """calculate the similarity between the place and feature type"""
         for feature in features_intersects:
-            self.app_log.info('SPATIAL SERVICE ->   id of the feature: ' + feature[1])
+            # self.app_log.info('SPATIAL SERVICE ->   id of the feature: ' + feature[1])
+            self.app_log.info('START CALCULE SIMILARITY')
             similarity = self.DataAccess.calcule_tversky(place[2], feature[0])
+            self.app_log.info('END CALCULE SIMILARITY')
             if similarity > self.SIMILARITY_MIN:
-                self.app_log.info('SPATIAL SERVICE -> ------> feature: ' + feature[1] + ' similarity: ' + str(similarity))
+                # self.app_log.info('SPATIAL SERVICE -> ------> feature: ' + feature[1] + ' similarity: ' + str(similarity))
                 data[feature[1]] = similarity
 
     def build_service(self, service):
