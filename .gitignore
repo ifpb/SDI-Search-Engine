@@ -9,6 +9,7 @@ db/
 .idea/
 venv/
 main.log
+scripts/
 
 # User-specific stuff
 .idea/**/workspace.xml

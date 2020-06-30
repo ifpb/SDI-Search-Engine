@@ -31,7 +31,7 @@
               <div class="input-group-prepend">
                 <span class="input-group-text" id="basic-addon2">Tema:</span>
               </div>
-              <input type="text" class="form-control" aria-describedby="basic-addon2">
+              <input [(ngModel)]="theme" type="text" class="form-control" aria-describedby="basic-addon2">
             </div>
           </div>
           <div class="row">
@@ -111,7 +111,7 @@
           <div class="card-body">
             <p *ngIf="service.start_date && service.end_date"><b>Período:</b> {{ service.start_date }} - {{ service.end_date }}</p>
             <p><b>Descrição:</b> {{ service.description }}</p>
-            <p><b>Organização:</b> {{ service.publisher }}</p>
+            <p *ngIf="service.publisher"><b>Organização:</b> {{ service.publisher }}</p>
             <p><b>Tipo:</b> {{ service.service_processed }}</p>
             <p *ngIf="service.wfs_url"><b>WFS URL:</b> {{ service.wfs_url }}</p>
             <p *ngIf="service.wms_url"><b>WMS URL:</b> {{ service.wms_url }}</p>

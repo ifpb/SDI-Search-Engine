@@ -17,7 +17,7 @@ class DataAccess(object):
 
     def find_place(self, place_name):
         result = self._engine.execute(
-            f"SELECT nome, tipo, geom, gid, area FROM place WHERE nome ILIKE '{place_name}'").fetchall()
+            f"SELECT nome, tipo, geom, gid, area, x_min, y_min, x_max, y_max FROM place WHERE nome ILIKE '{place_name}'").fetchall()
         if len(result) > 0:
             if len(result) > 1:
                 self._app_log.info("DataAccess -> existe mais de um!")
@@ -28,7 +28,7 @@ class DataAccess(object):
             return None
 
     def find_place_id(self, place_id):
-        result = self._engine.execute(f"SELECT nome, tipo, geom, gid, area FROM place WHERE gid = {place_id}").fetchall()
+        result = self._engine.execute(f"SELECT nome, tipo, geom, gid, area, x_min, y_min, x_max, y_max FROM place WHERE gid = {place_id}").fetchall()
         if len(result) > 0:
             if len(result) > 1:
                 self._app_log.info("DataAccess -> existe mais de um!")
@@ -66,6 +66,7 @@ class DataAccess(object):
         result = self._engine.execute(query).fetchall()[0]
         return result["tversky"]
 
+    # TODO V1 FEATURE TYPE
     def features_with_intersects_and_similarity(self, geometry, area):
         query = f"""
                     select id, v2similarity(geometry, '{geometry}'::geometry) from feature_type
@@ -75,6 +76,17 @@ class DataAccess(object):
         self._app_log.info('RESULT : ' + str(len(result)))
         return result
 
+    # TODO V2 FEATURE TYPE
+    def features_with_intersects_and_similarityv2(self, place):
+        query = f"""
+                    select id, v3similarity({place[5]}, {place[6]}, {place[7]}, {place[8]}, x_min, y_min, x_max, y_max) from feature_type
+                    where ST_Intersects('{place[2]}'::geometry, geometry)
+                """
+        result = self._engine.execute(query).fetchall()
+        self._app_log.info('RESULT : ' + str(len(result)))
+        return result
+
+    # TODO V1 SERVICE
     def services_with_intersects_and_similarity(self, geometry, area):
         query = f"""
             select features.service_id, sum(features.sim) / features.features_of_service as similarity  from (
@@ -82,6 +94,18 @@ class DataAccess(object):
                 where ST_Intersects(f.geometry, '{geometry}')
             ) as features group by features.service_id, features.features_of_service
                 """
+        result = self._engine.execute(query).fetchall()
+        self._app_log.info('RESULT: ' + str(len(result)))
+        return result
+
+    # TODO V2 SERVICE
+    def services_with_intersects_and_similarityv2(self, place):
+        query = f"""
+             select features.service_id, sum(features.sim) / features.features_of_service as similarity  from (
+                 select service_id, v3similarity({place[5]}, {place[6]}, {place[7]}, {place[8]}, f.x_min, f.y_min, f.x_max, f.y_max) as sim, features_of_service from feature_type f
+                 where ST_Intersects(f.geometry, '{place[2]}'::geometry)
+             ) as features group by features.service_id, features.features_of_service
+                 """
         result = self._engine.execute(query).fetchall()
         self._app_log.info('RESULT: ' + str(len(result)))
         return result

@@ -73,7 +73,7 @@ class SpatialService(object):
                 place = self.DataAccess.find_place_id(place_name)
                 self.app_log.info('SPATIAL SERVICE -> place by id')
             #
-            result = self.DataAccess.services_with_intersects_and_similarity(place[2], place[4])
+            result = self.DataAccess.services_with_intersects_and_similarityv2(place)
             for r in result:
                 data[r[0]] = r[1]
             self.app_log.info('SPATIAL SERVICE -> quantidade final: ' + str(len(data)))
@@ -116,11 +116,10 @@ class SpatialService(object):
             else:
                 place = self.DataAccess.find_place_id(place_name)
             self.app_log.info('PLACE LOADED')
-            result = self.DataAccess.features_with_intersects_and_similarity(place[2], place[4])
+            result = self.DataAccess.features_with_intersects_and_similarityv2(place)
             for r in result:
                 data[r[0]] = r[1]
         except Exception as e:
-            raise e
             exception['exception'] = e
 
     def services_with_similarity(self, features_intersects, place, service_round):

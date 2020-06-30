@@ -72,10 +72,10 @@ def by_choice_find_place():
             level = request.args.get("level")
             if level == "SERVICE":
                 app_log.info("choice in level of the service")
-                spatial_service.find_place_in_level_service(place["id"], data_manager, exception, is_place_id=True)
+                spatial_service.find_place_in_level_servicev2(place["id"], data_manager, exception, is_place_id=True)
             else:
                 app_log.info("choice in level of the feature type")
-                spatial_service.find_place_in_level_feature_type(place["id"], data_manager, exception, is_place_id=True)
+                spatial_service.find_place_in_level_feature_typev2(place["id"], data_manager, exception, is_place_id=True)
             if exception.keys().__contains__('exception'):
                 raise exception['exception']
             return jsonify(data_manager)

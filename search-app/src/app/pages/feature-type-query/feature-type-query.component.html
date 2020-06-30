@@ -32,7 +32,7 @@
               <div class="input-group-prepend">
                 <span class="input-group-text" id="basic-addon2">Tema:</span>
               </div>
-              <input type="text" class="form-control" aria-describedby="basic-addon2">
+              <input [(ngModel)]="theme" type="text" class="form-control" aria-describedby="basic-addon2">
             </div>
           </div>
           <div class="row">
@@ -112,7 +112,7 @@
               data-parent="#accordion">
               <div class="card-body">
                 <p *ngIf="feature.description"><b>Descrição:</b> {{ feature.description }}</p>
-                <p><b>Palavra-Chave:</b> {{ feature.keywords }}</p>
+                <p *ngIf="feature.keywords"><b>Palavra-Chave:</b> {{ feature.keywords }}</p>
                 <p><b>Similaridade do feature type:</b> {{ feature.similarity }}</p>
               </div>
             </div>

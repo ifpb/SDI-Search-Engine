@@ -19,6 +19,7 @@ export class ServicesQueryComponent implements OnInit {
   search: string = '';
   startDate: string = '2015-01-01';
   endDate: string = '2015-12-31';
+  theme: string = '';
   blockedButton: boolean = false;
   services: Service[];
   error: string;
@@ -44,7 +45,7 @@ export class ServicesQueryComponent implements OnInit {
 
   searchServices() {
     this.initSearch();
-    const body = this.queryService.buildBody(this.search, this.startDate, this.endDate, '');
+    const body = this.queryService.buildBody(this.search, this.startDate, this.endDate, this.theme);
     this.serviceService.findServices(body, false).then((resources: Resource[]) => {
       this.manageData(resources);
       this.afterRequest();
@@ -122,7 +123,7 @@ export class ServicesQueryComponent implements OnInit {
       place_name: item.id,
       start_date: this.startDate,
       end_date: this.endDate,
-      theme: ''
+      theme: this.theme
     };
     this.serviceService.findServices(body, true).then((resources: Resource[]) => {
       this.afterRequest();

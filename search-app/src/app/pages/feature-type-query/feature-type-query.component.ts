@@ -16,9 +16,10 @@ export class FeatureTypeQueryComponent implements OnInit {
   resources: Resource[];
 
   features: FeatureType[];
-  placeName: string = 'barro';
+  placeName: string = 'campinas';
   startDate: string = '2015-01-01';
   endDate: string = '2015-12-31';
+  theme: string = 'ferrovias';
   blockedButton: boolean = false;
   error: string;
   choices: any[];
@@ -43,7 +44,7 @@ export class FeatureTypeQueryComponent implements OnInit {
 
   search() {
     this.initSearch();
-    const body = this.queryService.buildBody(this.placeName, this.startDate, this.endDate, '');
+    const body = this.queryService.buildBody(this.placeName, this.startDate, this.endDate, this.theme);
     console.log('body', body);
     this.featureService.find(body, false).then((resources: Resource[]) => {
       this.manageData(resources);
@@ -123,6 +124,7 @@ export class FeatureTypeQueryComponent implements OnInit {
       place_name: item.id,
       start_date: this.startDate,
       end_date: this.endDate,
+      theme: this.theme
     };
     this.featureService.find(body, true).then((resources: Resource[]) => {
       this.manageData(resources);
