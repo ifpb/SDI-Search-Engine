@@ -81,6 +81,9 @@
   <!--
      <lib path="../a-jar-that-does-not-exist.jar" />
   -->
+  <!-- <lib dir="${solr.install.dir:../../../..}/dist/" regex="solr-analysis-extras-\d.*\.jar"/>
+  <lib dir="${solr.install.dir:../../../..}/contrib/analysis-extras/lucene-libs" regex=".*\.jar" />
+  <lib dir="${solr.install.dir:../../../..}/contrib/analysis-extras/lib" regex="opennlp-.*\.jar" /> -->
 
   <!-- Data Directory
 

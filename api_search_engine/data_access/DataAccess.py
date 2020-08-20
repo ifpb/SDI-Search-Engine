@@ -66,7 +66,7 @@ class DataAccess(object):
         result = self._engine.execute(query).fetchall()[0]
         return result["tversky"]
 
-    # TODO V1 FEATURE TYPE
+    # TODO V1 FEATURE TYPE - ONLY COMMENTARY
     def features_with_intersects_and_similarity(self, geometry, area):
         query = f"""
                     select id, v2similarity(geometry, '{geometry}'::geometry) from feature_type
@@ -76,17 +76,23 @@ class DataAccess(object):
         self._app_log.info('RESULT : ' + str(len(result)))
         return result
 
-    # TODO V2 FEATURE TYPE
-    def features_with_intersects_and_similarityv2(self, place):
-        query = f"""
-                    select id, v3similarity({place[5]}, {place[6]}, {place[7]}, {place[8]}, x_min, y_min, x_max, y_max) from feature_type
-                    where ST_Intersects('{place[2]}'::geometry, geometry)
-                """
+    # TODO V2 FEATURE TYPE - ONLY COMMENTARY
+    def features_with_intersects_and_similarityv2(self, xmin, ymin, xmax, ymax, geometry=None):
+        if geometry is not None:
+            query = f"""
+                        select id, v3similarity({xmin}, {ymin}, {xmax}, {ymax}, x_min, y_min, x_max, y_max) from feature_type
+                        where ST_Intersects('{geometry}'::geometry, geometry)
+                    """
+        else:
+            query = f"""
+                        select id, v3similarity({xmin}, {ymin}, {xmax}, {ymax}, x_min, y_min, x_max, y_max) from feature_type
+                        where ST_Intersects(ST_MakeEnvelope({xmin}, {ymin}, {xmax}, {ymax}), geometry)
+                    """
         result = self._engine.execute(query).fetchall()
         self._app_log.info('RESULT : ' + str(len(result)))
         return result
 
-    # TODO V1 SERVICE
+    # TODO V1 SERVICE - ONLY COMMENTARY
     def services_with_intersects_and_similarity(self, geometry, area):
         query = f"""
             select features.service_id, sum(features.sim) / features.features_of_service as similarity  from (
@@ -98,7 +104,7 @@ class DataAccess(object):
         self._app_log.info('RESULT: ' + str(len(result)))
         return result
 
-    # TODO V2 SERVICE
+    # TODO V2 SERVICE - ONLY COMMENTARY
     def services_with_intersects_and_similarityv2(self, place):
         query = f"""
              select features.service_id, sum(features.sim) / features.features_of_service as similarity  from (
@@ -190,3 +196,10 @@ class DataAccess(object):
             query += f"id ilike '{f}' or "
         query = query[0:-4]
         return self._engine.execute(query).fetchall()
+
+    def retrieve_feature_type(self, id):
+        query = f"""
+            SELECT title, x_min, y_min, x_max, y_max, geometry FROM feature_type WHERE id ilike '{id}'
+        """
+        result = self._engine.execute(query).fetchall()[0]
+        return result

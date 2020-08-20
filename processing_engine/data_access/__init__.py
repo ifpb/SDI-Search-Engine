@@ -94,7 +94,11 @@ def create_bounding_box_of_service(service_id):
 def update_service(service_id, bbox):
     try:
         result = engine.execute(f"UPDATE service SET geometry = ST_MakeEnvelope({bbox[0]}, {bbox[1]},"
-                                f"{bbox[2]}, {bbox[3]}) "
+                                f"{bbox[2]}, {bbox[3]}), "
+                                f"x_min = {bbox[0]}, "
+                                f"y_min = {bbox[1]}, "
+                                f"x_max = {bbox[2]}, "
+                                f"y_max = {bbox[3]} "
                                 f"WHERE id ilike '{service_id}'")
         return result
     except Exception as e:

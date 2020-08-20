@@ -59,6 +59,14 @@
       </analyzer>
       <analyzer type="query">
         <tokenizer class="solr.StandardTokenizerFactory"/>
+        <!-- <tokenizer class="solr.OpenNLPTokenizerFactory"
+            sentenceModel="lemmatizer/pt-sent.bin"
+            tokenizerModel="lemmatizer/pt-token.bin"/>
+        <filter class="solr.OpenNLPPOSFilterFactory" posTaggerModel="lemmatizer/pt-pos-maxent.bin"/>
+
+        <filter class="solr.OpenNLPLemmatizerFilterFactory"
+          dictionary="lemmas.txt" /> -->
+
         <filter class="solr.StopFilterFactory" ignoreCase="true" words="./lang/stopwords_pt.txt" />
         <filter class="solr.SynonymGraphFilterFactory" synonyms="./lang/synonyms_pt.txt" ignoreCase="true" expand="true"/> 
         <filter class="solr.LowerCaseFilterFactory"/>

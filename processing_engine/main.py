@@ -71,14 +71,20 @@ def persist_feature_type(content, service_description, service_id):
         all_description = ''
         features_solr_docs = []
         data = {'title': '', 'name': '', 'description': '', 'keywords': '', 'service_id': service_id,
-                'start_date': None, 'end_date': None, 'geometry': '', 'area': None, 'features_of_service': len(content)}
+                'start_date': None, 'end_date': None, 'geometry': '', 'area': None, 'features_of_service': len(content),
+                'x_min': None, 'y_min': None, 'x_max': None, 'y_max': None}
         columns = [
             'title', 'name', 'description', 'keywords', 'service_id', 'geometry',
-            'start_date', 'end_date', 'area', 'features_of_service'
+            'start_date', 'end_date', 'area', 'features_of_service', 'x_min', 'y_min',
+            'x_max', 'y_max'
         ]
         log.info("quantidade de ft: " + str(len(content)))
         for featureType in content:
-            feature_description = ''
+            # bbox
+            data['x_min'] = content[featureType].boundingBox[0]
+            data['y_min'] = content[featureType].boundingBox[1]
+            data['x_max'] = content[featureType].boundingBox[2]
+            data['y_max'] = content[featureType].boundingBox[3]
             feature_type_id = uuid.uuid4()
             data['title'] = util.process_escape_character(content[featureType].title)
             data['name'] = util.process_escape_character(featureType)
@@ -88,7 +94,7 @@ def persist_feature_type(content, service_description, service_id):
             data['description'] = util.process_escape_character(content[featureType].abstract)
             data = find_date(data)
             if not data_access.exists_feature_type(data):
-                # tematic index
+                # thematic index
                 feature_description = util.build_string_for_solr([data['title'], data['description'], data['keywords']])
                 all_description += feature_description
                 feature_description += service_description
@@ -120,8 +126,11 @@ def persist_wms_service(url_record, record, catalogue_id, url_wfs=None):
         if len(wms.contents) > 0:
             '''Só persisti o registro caso a requisição para o serviço de certo'''
             register_id = persist_register(record, catalogue_id)
-            columns = ['wfs_url', 'wms_url', 'service_processed',
-                       'title', 'description', 'publisher', 'register_id', 'geometry', 'start_date', 'end_date', 'area']
+            columns = [
+                'wfs_url', 'wms_url', 'service_processed', 'title',
+                'description', 'publisher', 'register_id', 'geometry',
+                'start_date', 'end_date', 'area', 'x_min', 'y_min', 'x_max', 'y_max'
+            ]
             data = {
                 'wms_url': wms.url,
                 'service_processed': 'OGC:WMS',
@@ -147,7 +156,7 @@ def persist_wms_service(url_record, record, catalogue_id, url_wfs=None):
             if data['start_date'] and data['end_date'] is None:
                 data = find_date_in_service_metadata(data, record.date)
             service_id = uuid.uuid4()
-            # tematic index
+            # thematic index
             service_description = util.build_string_for_solr(
                 [data['title'], data['description'], data['publisher']]
             )
@@ -171,8 +180,11 @@ def persist_wfs_service(url_record, record, catalogue_id):
         wfs = WebFeatureService(url_record)
         '''Só persisti o registro caso a requisição para o serviço de certo'''
         register_id = persist_register(record, catalogue_id)
-        columns = ['wfs_url', 'wms_url', 'service_processed',
-                   'title', 'description', 'publisher', 'register_id', 'start_date', 'end_date', 'geometry', 'area']
+        columns = [
+            'wfs_url', 'wms_url', 'service_processed', 'title',
+            'description', 'publisher', 'register_id', 'geometry',
+            'start_date', 'end_date', 'area', 'x_min', 'y_min', 'x_max', 'y_max'
+        ]
         data = {
             'wfs_url': wfs.url,
             'service_processed': 'OGC:WFS',

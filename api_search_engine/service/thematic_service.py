@@ -8,7 +8,8 @@ class ThematicService:
 
     def search_in_level_feature_type(self, query, data):
         result = self._solr.search(f'feature_type_metadata:{query}', **{
-            'fl': 'feature_type_id, score'
+            'fl': 'feature_type_id, score',
+            'rows': 999999
         })
         for r in result:
             if r.keys().__contains__('feature_type_id'):
@@ -16,7 +17,8 @@ class ThematicService:
 
     def search_in_level_service(self, query, data):
         result = self._solr.search(f'service_metadata:{query}', **{
-            'fl': 'service_id, score'
+            'fl': 'service_id, score',
+            'rows': 999999
         })
         for r in result:
             if r.keys().__contains__('service_id'):
