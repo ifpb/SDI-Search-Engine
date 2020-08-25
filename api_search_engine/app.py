@@ -179,6 +179,16 @@ def similar_feature_types(feature_type):
         return make_response(jsonify(BAD_REQUEST)), 400
 
 
+@app.route('/similar/services/<service>', methods=['GET'])
+@cross_origin()
+def similar_services(service):
+    try:
+        return jsonify(service_service.similar_service(service))
+    except Exception as e:
+        app_log.info(e.__str__())
+        return make_response(jsonify(BAD_REQUEST)), 400
+
+
 @app.route('/find/feature-type/bounding-box', methods=['GET'])
 @cross_origin()
 def find_feature_type_bbox():
@@ -190,4 +200,4 @@ def find_feature_type_bbox():
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, host='0.0.0.0')
