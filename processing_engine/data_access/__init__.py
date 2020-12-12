@@ -1,4 +1,7 @@
 import traceback
+from datetime import datetime
+
+from pandas import DataFrame
 
 import util
 from sqlalchemy import create_engine
@@ -42,6 +45,25 @@ def persist_register(data_frame):
         log.error(f'Detalhes: {e}')
         log.error(f'DataFrame:\n{data_frame.tail(5)}')
         raise DataUpdateException()
+
+
+def update_register(data):
+    try:
+        sql = f"""
+            UPDATE register SET 
+                title = '{data['title']}',
+                publisher = '{data['publisher']}',
+                date = '{data['date']}',
+                keywords = '{data['keywords']}',
+                description = '{data['description']}'
+            WHERE id = '{data['id']}'
+            """
+        engine.execute(sql)
+    except Exception as e:
+        log.error('Fail on update register')
+        log.error(f'Details: {e}')
+        raise
+        # raise DataUpdateException()
 
 
 def persist_service(data_frame):
@@ -113,7 +135,8 @@ def update_area_service(service_id):
 
 
 def create_geometry(bounding_box_xmin, bounding_box_ymin, bounding_box_xmax, bounding_box_ymax):
-    result = engine.execute(f"SELECT ST_MakeEnvelope({bounding_box_xmin}, {bounding_box_ymin}, {bounding_box_xmax}, {bounding_box_ymax})").fetchall()
+    result = engine.execute(
+        f"SELECT ST_MakeEnvelope({bounding_box_xmin}, {bounding_box_ymin}, {bounding_box_xmax}, {bounding_box_ymax})").fetchall()
     return result[0][0]
 
 
@@ -130,3 +153,95 @@ def exists_feature_type(feature_type):
 
 def geometry_area(geometry):
     return engine.execute(f"SELECT ST_Area('{geometry}'::geometry)").fetchall()[0][0]
+
+
+def retrieve_catalogue_by_url(catalogue_url):
+    try:
+        query = f"""
+        SELECT * FROM catalogue WHERE url = '{catalogue_url}'
+        """
+        result = engine.execute(query)
+        if result.rowcount > 0:
+            result = result.fetchall()
+            return result[0]
+        return None
+    except Exception as e:
+        raise e
+
+
+def registers_of_catalogue(catalogue_id):
+    try:
+        query = f"""
+        SELECT id, date FROM register WHERE catalogue_id = '{catalogue_id}'
+        """
+        result = engine.execute(query).fetchall()
+        records = dict()
+        for r in result:
+            if r[1] is not None:
+                records[r[0]] = r[1]
+        return records
+    except Exception as e:
+        raise e
+
+
+def services_of_register(register_id):
+    try:
+        query = f"""
+        SELECT id, wfs_url, wms_url, service_processed FROM service WHERE register_id = '{register_id}'
+        """
+        return engine.execute(query).fetchall()
+    except Exception as e:
+        raise e
+
+
+def features_of_service(service_id):
+    try:
+        query = f"""
+        SELECT id, name FROM feature_type WHERE service_id = '{service_id}'
+        """
+        result = engine.execute(query).fetchall()
+        features = dict()
+        for f in result:
+            features[f[1]] = f[0]
+        return features
+    except Exception as e:
+        raise e
+
+
+# engine.execute(f"UPDATE feature_type SET "
+#                f"title = '{data['title']}',"
+#                f"description = '{data['description']}',"
+#                f"keywords = '{data['keywords']}',"
+#                f"start_date = {data['start_date']},"
+#                f"end_date = {data['end_date']},"
+#                f"features_of_service = {data['features_of_service']},"
+#                f"geometry = '{data['geometry']}',"
+#                f"x_min = {data['x_min']},"
+#                f"y_min = {data['y_min']},"
+#                f"x_max = {data['x_max']},"
+#                f"y_max = {data['y_max']},"
+#                f"area = {data['area'] or ''} "
+#                f"WHERE id = '{feature_id}'")
+def update_feature_type(data, feature_id):
+    try:
+        columns = [
+            'title', 'name', 'description', 'keywords', 'service_id', 'geometry',
+            'start_date', 'end_date', 'area', 'features_of_service', 'x_min', 'y_min',
+            'x_max', 'y_max'
+        ]
+        df = DataFrame(data=data, columns=columns, index=[feature_id])
+        df.to_sql(name='feature_type', con=engine, if_exists='append', index=True, index_label='id')
+    except Exception as e:
+        raise e
+
+
+def update_service_all_data(data, service_id):
+    try:
+        columns = [
+            'title', 'description', 'publisher', 'area',
+            'start_date', 'end_date'
+        ]
+        df = DataFrame(data=data, columns=columns, index=[service_id])
+        df.to_sql(name='service', con=engine, if_exists='append', index=True, index_label='id')
+    except Exception as e:
+        raise e

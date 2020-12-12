@@ -1,76 +1,70 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <schema name="default-config" version="1.6">
 
-    <field name="id" type="string" indexed="true" stored="true" required="true" />
-    <field name="service_id" type="string" indexed="true" stored="true" required="false" />
-    <field name="service_metadata" type="text_general" indexed="true" stored="true" termVectors="true" termPositions="true"/>
-    <field name="feature_type_id" type="string" indexed="true" stored="true"/>
-    <field name="feature_type_metadata" type="text_general" indexed="true" stored="true" termVectors="true" termPositions="true"/>
-    <field name="_version_" type="plong" indexed="true" stored="true" multiValued="false"/>
+  <field name="id" type="string" indexed="true" stored="true" required="true" />
+  <field name="service_metadata" type="text_general" indexed="true" stored="true" termVectors="true" termPositions="true"/>
+  <field name="feature_type_metadata" type="text_general" indexed="true" stored="true" termVectors="true" termPositions="true"/>
+  <field name="_version_" type="plong" indexed="true" stored="true" multiValued="false"/>
+  <!-- only id instead <field name="feature_type_id" type="string" indexed="true" stored="true"/> -->
+  <!-- only id instead <field name="service_id" type="string" indexed="true" stored="true" required="false" />-->
 
-    <uniqueKey>id</uniqueKey>
-    <!-- The StrField type is not analyzed, but indexed/stored verbatim. -->
-    <fieldType name="string" class="solr.StrField" sortMissingLast="true" docValues="true" />
-    <fieldType name="strings" class="solr.StrField" sortMissingLast="true" multiValued="true" docValues="true" />
+  <uniqueKey>id</uniqueKey>
+  <!-- The StrField type is not analyzed, but indexed/stored verbatim. -->
+  <fieldType name="string" class="solr.StrField" sortMissingLast="true" docValues="true" />
+  <fieldType name="strings" class="solr.StrField" sortMissingLast="true" multiValued="true" docValues="true" />
 
-    <!-- boolean type: "true" or "false" -->
-    <fieldType name="boolean" class="solr.BoolField" sortMissingLast="true"/>
-    <fieldType name="booleans" class="solr.BoolField" sortMissingLast="true" multiValued="true"/>
+  <!-- boolean type: "true" or "false" -->
+  <fieldType name="boolean" class="solr.BoolField" sortMissingLast="true"/>
+  <fieldType name="booleans" class="solr.BoolField" sortMissingLast="true" multiValued="true"/>
 
-    <!--
+  <!--
       Numeric field types that index values using KD-trees.
       Point fields don't support FieldCache, so they must have docValues="true" if needed for sorting, faceting, functions, etc.
     -->
-    <fieldType name="pint" class="solr.IntPointField" docValues="true"/>
-    <fieldType name="pfloat" class="solr.FloatPointField" docValues="true"/>
-    <fieldType name="plong" class="solr.LongPointField" docValues="true"/>
-    <fieldType name="pdouble" class="solr.DoublePointField" docValues="true"/>
+  <fieldType name="pint" class="solr.IntPointField" docValues="true"/>
+  <fieldType name="pfloat" class="solr.FloatPointField" docValues="true"/>
+  <fieldType name="plong" class="solr.LongPointField" docValues="true"/>
+  <fieldType name="pdouble" class="solr.DoublePointField" docValues="true"/>
 
-    <fieldType name="pints" class="solr.IntPointField" docValues="true" multiValued="true"/>
-    <fieldType name="pfloats" class="solr.FloatPointField" docValues="true" multiValued="true"/>
-    <fieldType name="plongs" class="solr.LongPointField" docValues="true" multiValued="true"/>
-    <fieldType name="pdoubles" class="solr.DoublePointField" docValues="true" multiValued="true"/>
-    <fieldType name="random" class="solr.RandomSortField" indexed="true"/>
+  <fieldType name="pints" class="solr.IntPointField" docValues="true" multiValued="true"/>
+  <fieldType name="pfloats" class="solr.FloatPointField" docValues="true" multiValued="true"/>
+  <fieldType name="plongs" class="solr.LongPointField" docValues="true" multiValued="true"/>
+  <fieldType name="pdoubles" class="solr.DoublePointField" docValues="true" multiValued="true"/>
+  <fieldType name="random" class="solr.RandomSortField" indexed="true"/>
 
-    <!-- since fields of this type are by default not stored or indexed,
+  <!-- since fields of this type are by default not stored or indexed,
        any data added to them will be ignored outright.  -->
-    <fieldType name="ignored" stored="false" indexed="false" multiValued="true" class="solr.StrField" />
+  <fieldType name="ignored" stored="false" indexed="false" multiValued="true" class="solr.StrField" />
 
-    <!-- KD-tree versions of date fields -->
-    <fieldType name="pdate" class="solr.DatePointField" docValues="true"/>
-    <fieldType name="pdates" class="solr.DatePointField" docValues="true" multiValued="true"/>
-    
-    <!--Binary data type. The data should be sent/retrieved in as Base64 encoded Strings -->
-    <fieldType name="binary" class="solr.BinaryField"/>
+  <!-- KD-tree versions of date fields -->
+  <fieldType name="pdate" class="solr.DatePointField" docValues="true"/>
+  <fieldType name="pdates" class="solr.DatePointField" docValues="true" multiValued="true"/>
 
-    <dynamicField name="*_ws" type="text_ws"  indexed="true"  stored="true"/>
-    <fieldType name="text_ws" class="solr.TextField" positionIncrementGap="100">
-      <analyzer>
-        <tokenizer class="solr.WhitespaceTokenizerFactory"/>
-      </analyzer>
-    </fieldType>
+  <!--Binary data type. The data should be sent/retrieved in as Base64 encoded Strings -->
+  <fieldType name="binary" class="solr.BinaryField"/>
 
-    <fieldType name="text_general" class="solr.TextField" positionIncrementGap="100" multiValued="true">
-      <analyzer type="index">
-        <tokenizer class="solr.LetterTokenizerFactory"/>
-        <filter class="solr.StopFilterFactory" ignoreCase="true" words="./lang/stopwords_pt.txt" />
-        <filter class="solr.LowerCaseFilterFactory"/>
-        <filter class="solr.ASCIIFoldingFilterFactory"/>
-      </analyzer>
-      <analyzer type="query">
-        <tokenizer class="solr.StandardTokenizerFactory"/>
-        <!-- <tokenizer class="solr.OpenNLPTokenizerFactory"
-            sentenceModel="lemmatizer/pt-sent.bin"
-            tokenizerModel="lemmatizer/pt-token.bin"/>
-        <filter class="solr.OpenNLPPOSFilterFactory" posTaggerModel="lemmatizer/pt-pos-maxent.bin"/>
+  <dynamicField name="*_ws" type="text_ws" indexed="true" stored="true"/>
+  <fieldType name="text_ws" class="solr.TextField" positionIncrementGap="100">
+    <analyzer>
+      <tokenizer class="solr.WhitespaceTokenizerFactory"/>
+    </analyzer>
+  </fieldType>
 
-        <filter class="solr.OpenNLPLemmatizerFilterFactory"
-          dictionary="lemmas.txt" /> -->
-
-        <filter class="solr.StopFilterFactory" ignoreCase="true" words="./lang/stopwords_pt.txt" />
-        <filter class="solr.SynonymGraphFilterFactory" synonyms="./lang/synonyms_pt.txt" ignoreCase="true" expand="true"/> 
-        <filter class="solr.LowerCaseFilterFactory"/>
-        <filter class="solr.ASCIIFoldingFilterFactory"/>
-      </analyzer>
-    </fieldType>
+  <fieldType name="text_general" class="solr.TextField" positionIncrementGap="100" multiValued="true">
+    <analyzer type="index">
+      <tokenizer class="solr.LetterTokenizerFactory"/>
+      <filter class="solr.StopFilterFactory" ignoreCase="true" words="./lang/stopwords_pt.txt" />
+      <filter class="solr.LowerCaseFilterFactory"/>
+      <filter class="solr.ASCIIFoldingFilterFactory"/>
+    </analyzer>
+    <analyzer type="query">
+      <tokenizer class="solr.OpenNLPTokenizerFactory" sentenceModel="lemmatizer/pt-sent.bin" tokenizerModel="lemmatizer/pt-token.bin"/>
+      <filter class="solr.StopFilterFactory" ignoreCase="true" words="./lang/stopwords_pt.txt" />
+      <filter class="solr.LowerCaseFilterFactory"/>
+      <filter class="solr.SynonymGraphFilterFactory" synonyms="./lang/synonyms_pt.txt" ignoreCase="true" expand="true"/>
+      <filter class="solr.OpenNLPPOSFilterFactory" posTaggerModel="lemmatizer/pt-pos-maxent.bin"/>
+      <filter class="solr.OpenNLPLemmatizerFilterFactory" dictionary="lemmatizer/lemmas-pt.dict" />
+      <filter class="solr.ASCIIFoldingFilterFactory"/>
+    </analyzer>
+  </fieldType>
 </schema>

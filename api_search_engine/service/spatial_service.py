@@ -80,9 +80,11 @@ class SpatialService(object):
                 place = self.DataAccess.find_place_id(place_name)
                 self.app_log.info('SPATIAL SERVICE -> place by id')
             #
-            result = self.DataAccess.services_with_intersects_and_similarityv2(place)
+            result = self.DataAccess.services_with_intersects_and_similarityv2(place[5], place[6], place[7], place[8],
+                                                                               place[2])
             for r in result:
-                data[r[0]] = r[1]
+                if r[1] > self.SIMILARITY_MIN:
+                    data[r[0]] = r[1]
             self.app_log.info('SPATIAL SERVICE -> quantidade final: ' + str(len(data)))
         except Exception as e:
             exception['exception'] = e
@@ -141,7 +143,8 @@ class SpatialService(object):
             result = self.DataAccess.features_with_intersects_and_similarityv2(place[5], place[6], place[7], place[8],
                                                                                place[2])
             for r in result:
-                data[r[0]] = r[1]
+                if r[1] > self.SIMILARITY_MIN:
+                    data[r[0]] = r[1]
         except Exception as e:
             exception['exception'] = e
 
