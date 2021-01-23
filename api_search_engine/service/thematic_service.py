@@ -4,7 +4,7 @@ import pysolr
 class ThematicService:
     # TODO É provavel que tenha que tratar a variavel query
     def __init__(self):
-        self._solr = pysolr.Solr('http://localhost:8983/solr/inde', always_commit=False, timeout=10)
+        self._solr = pysolr.Solr('http://solr_app:8983/solr/inde', always_commit=False, timeout=10)
 
     def search_in_level_feature_type(self, query, data):
         result = self._solr.search(f'feature_type_metadata:{query}', **{
