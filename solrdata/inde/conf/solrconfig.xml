@@ -72,7 +72,6 @@
        The example below can be used to load a solr-contrib along
        with their external dependencies.
     -->
-    <!-- <lib dir="${solr.install.dir:../../../..}/dist/" regex="solr-ltr-\d.*\.jar" /> -->
 
   <!-- an exact 'path' can be used instead of a 'dir' to specify a
        specific jar file.  This will cause a serious error to be logged
@@ -81,9 +80,14 @@
   <!--
      <lib path="../a-jar-that-does-not-exist.jar" />
   -->
+  <!-- <lib dir="${solr.install.dir:../../../..}/dist/" regex="solr-ltr-\d.*\.jar" /> -->
   <!-- <lib dir="${solr.install.dir:../../../..}/dist/" regex="solr-analysis-extras-\d.*\.jar"/>
-  <lib dir="${solr.install.dir:../../../..}/contrib/analysis-extras/lucene-libs" regex=".*\.jar" />
-  <lib dir="${solr.install.dir:../../../..}/contrib/analysis-extras/lib" regex="opennlp-.*\.jar" /> -->
+  <lib dir="${solr.install.dir:../../../..}/contrib/analysis-extras/lucene-libs/" regex=".*\.jar" /> 
+  <lib dir="${solr.install.dir:../../../..}/contrib/analysis-extras/lib/" regex="opennlp-.*\.jar" />  -->
+
+  <lib dir="${solr.install.dir:../../../..}/dist/" regex="solr-analysis-extras-\d.*\.jar"/>
+  <lib dir="${solr.install.dir:../../../..}/contrib/analysis-extras/lucene-libs/" regex="lucene-analyzers-opennlp-\d.*\.jar"/>
+  <lib dir="${solr.install.dir:../../../..}/contrib/analysis-extras/lib/" regex="opennlp-tools-\d.*\.jar"/>
 
   <!-- Data Directory
 

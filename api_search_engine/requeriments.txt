@@ -1,3 +1,5 @@
 sqlalchemy
 flask_cors
 pysolr
+python-dateutil
+psycopg2

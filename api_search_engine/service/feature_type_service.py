@@ -73,13 +73,12 @@ def find(filters, is_place_id=False):
 
 def similar_feature_type(feature_type_id):
     if feature_type_id is None:
-        raise Exception('feature type id inválido')
+        raise Exception('feature type id is invalid')
     app_log.info('feature type id: ' + str(feature_type_id))
 
     spatial_service = SpatialService()
 
     feature_type = spatial_service.retrieve_feature_type(feature_type_id)
-    app_log.info('end')
     return find_by_bbox({
         'feature_type_id': feature_type_id,
         'xmin': feature_type[1],

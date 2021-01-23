@@ -15,7 +15,7 @@ def validate_years(start_year, end_year):
             min_year <= int(end_year):
         return True
     else:
-        log.info('TAGGING - invalid date ' + str(start_year) + ' ' + str(end_year))
+        log.info('PROCESSING ENGINE -> TAGGING - invalid date ' + str(start_year) + ' ' + str(end_year))
         return False
 
 
@@ -162,7 +162,7 @@ def build_date_for_semester_others(date_result):
 
 
 def check_contains_semester(date):
-    log.info('check_contains_semester')
+    log.info('PROCESSING ENGINE -> check_contains_semester')
     pattern = semester_and_others_pattern
     match = re.findall(pattern, date, re.IGNORECASE)
     if len(match) == 1:
@@ -200,7 +200,7 @@ def build_date_for_full_dates(date):
 
 
 def check_contains_dates(date):
-    log.info('check_contains_dates')
+    log.info('PROCESSING ENGINE -> check_contains_dates')
     pattern = full_dates_pattern
     match = re.findall(pattern, date, re.IGNORECASE)
     if len(match) == 1:
@@ -250,7 +250,7 @@ def build_date_for_pure_dates(result):
 
 
 def check_pure_dates(date):
-    log.info('check_pure_dates')
+    log.info('PROCESSING ENGINE -> check_pure_dates')
     pattern = pure_dates_pattern
     result = re.findall(pattern, date, re.IGNORECASE)
     if len(result) == 1:

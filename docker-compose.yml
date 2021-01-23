@@ -1,0 +1,29 @@
+version: "3.3"
+services:
+  # db_postgres:
+  #   container_name: db_postgres_app
+  #   build: ./db/
+  #   ports: 
+  #     - 5433:5432
+
+  solr_app:
+    image: solr:8
+    container_name: solr_app
+    environment:
+      - SOLR_JAVA_MEM=-Xms4g -Xmx4g
+    volumes:
+      - ./solrdata:/opt/solr/server/solr/configsets/
+    ports:
+      - 8983:8983
+  
+  api_search_engine:
+    build: ./api_search_engine/
+    container_name: api_search_engine_app
+    ports: 
+      - 5000:5000
+    links: 
+      # - db_postgres
+      - solr_app
+    depends_on:
+      # - db_postgres
+      - solr_app

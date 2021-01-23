@@ -105,13 +105,21 @@ class DataAccess(object):
         return result
 
     # TODO V2 SERVICE - ONLY COMMENTARY
-    def services_with_intersects_and_similarityv2(self, place):
-        query = f"""
-             select features.service_id, sum(features.sim) / features.features_of_service as similarity  from (
-                 select service_id, v3similarity({place[5]}, {place[6]}, {place[7]}, {place[8]}, f.x_min, f.y_min, f.x_max, f.y_max) as sim, features_of_service from feature_type f
-                 where ST_Intersects(f.geometry, '{place[2]}'::geometry)
-             ) as features group by features.service_id, features.features_of_service
-                 """
+    def services_with_intersects_and_similarityv2(self, xmin, ymin, xmax, ymax, geometry=None):
+        if geometry is not None:
+            query = f"""
+                 select features.service_id, sum(features.sim) / features.features_of_service as similarity  from (
+                     select service_id, v3similarity({xmin}, {ymin}, {xmax}, {ymax}, f.x_min, f.y_min, f.x_max, f.y_max) as sim, features_of_service from feature_type f
+                     where ST_Intersects(f.geometry, '{geometry}'::geometry)
+                 ) as features group by features.service_id, features.features_of_service
+                     """
+        else:
+            query = f"""
+                 select features.service_id, sum(features.sim) / features.features_of_service as similarity  from (
+                     select service_id, v3similarity({xmin}, {ymin}, {xmax}, {ymax}, f.x_min, f.y_min, f.x_max, f.y_max) as sim, features_of_service from feature_type f
+                     where ST_Intersects(f.geometry, ST_MakeEnvelope({xmin}, {ymin}, {xmax}, {ymax}))
+                 ) as features group by features.service_id, features.features_of_service
+                     """
         result = self._engine.execute(query).fetchall()
         self._app_log.info('RESULT: ' + str(len(result)))
         return result
@@ -201,5 +209,12 @@ class DataAccess(object):
         query = f"""
             SELECT title, x_min, y_min, x_max, y_max, geometry FROM feature_type WHERE id ilike '{id}'
         """
+        result = self._engine.execute(query).fetchall()[0]
+        return result
+
+    def retrieve_service(self, id):
+        query = f"""
+               SELECT title, x_min, y_min, x_max, y_max, geometry FROM service WHERE id ilike '{id}'
+           """
         result = self._engine.execute(query).fetchall()[0]
         return result

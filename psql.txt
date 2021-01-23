@@ -1,0 +1,2 @@
+ psql -h localhost -U postgres -W -d inde_database_docker
+ psql -U postgres inde_database_docker

@@ -1,0 +1,7 @@
+PRO = art
+PREP = n
+DET+Art = art
+DET+Num	= n
+A = adj
+V = v-inf
+N = n

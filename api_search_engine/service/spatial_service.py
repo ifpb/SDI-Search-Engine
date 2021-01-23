@@ -11,13 +11,16 @@ class SpatialService(object):
         self.app_log = log.get_logger()
         self.SIMILARITY_MIN = 0.0001
         self.DataAccess = DataAccess()
-        
+
     def __del__(self):
         self.app_log.info('SPATIAL SERVICE ->   delete SpatialService')
         self.DataAccess.close_engine_connections()
 
     def retrieve_feature_type(self, id):
         return self.DataAccess.retrieve_feature_type(id)
+
+    def retrieve_service(self, id):
+        return self.DataAccess.retrieve_service(id)
 
     def find_place(self, place_name):
         """find for one place with associate locale"""
@@ -57,7 +60,8 @@ class SpatialService(object):
                                 # 3 calculate the similarity between two geometry
                                 service_round = self.services_with_similarity(features_intersects, place, service_round)
                                 if service_round["quantity"] > 0:
-                                    service_round["similarity"] = service_round["sum_similarity"] / len(list_of_features)
+                                    service_round["similarity"] = service_round["sum_similarity"] / len(
+                                        list_of_features)
                                     self.app_log.info('SPATIAL SERVICE ->Serviço relacionado similarity total: ' +
                                                       str(service_round["similarity"]) + ' id: ' + service_round["id"])
                                     data[service_round["id"]] = service_round['similarity']
@@ -76,12 +80,29 @@ class SpatialService(object):
                 place = self.DataAccess.find_place_id(place_name)
                 self.app_log.info('SPATIAL SERVICE -> place by id')
             #
-            result = self.DataAccess.services_with_intersects_and_similarityv2(place)
+            result = self.DataAccess.services_with_intersects_and_similarityv2(place[5], place[6], place[7], place[8],
+                                                                               place[2])
             for r in result:
-                data[r[0]] = r[1]
+                if r[1] > self.SIMILARITY_MIN:
+                    data[r[0]] = r[1]
             self.app_log.info('SPATIAL SERVICE -> quantidade final: ' + str(len(data)))
         except Exception as e:
-           exception['exception'] = e
+            exception['exception'] = e
+
+    def find_service_similar_to(self, service, data, exception):
+        try:
+            result = self.DataAccess.services_with_intersects_and_similarityv2(service['xmin'], service['ymin'],
+                                                                               service['xmax'], service['ymax'],
+                                                                               service['geometry'])
+            if service.keys().__contains__('service_id'):
+                for r in result:
+                    if r[0] != service['service_id']:
+                        data[r[0]] = r[1]
+            else:
+                for r in result:
+                    data[r[0]] = r[1]
+        except Exception as e:
+            exception['exception'] = e
 
     def find_place_in_level_feature_type(self, place_name, data, exception, is_place_id=False):
         """search for features types with associate locale"""
@@ -119,16 +140,20 @@ class SpatialService(object):
             else:
                 place = self.DataAccess.find_place_id(place_name)
             self.app_log.info('PLACE LOADED')
-            result = self.DataAccess.features_with_intersects_and_similarityv2(place[5], place[6], place[7], place[8], place[2])
+            result = self.DataAccess.features_with_intersects_and_similarityv2(place[5], place[6], place[7], place[8],
+                                                                               place[2])
             for r in result:
-                data[r[0]] = r[1]
+                if r[1] > self.SIMILARITY_MIN:
+                    data[r[0]] = r[1]
         except Exception as e:
             exception['exception'] = e
 
     def find_feature_types_similar_to(self, feature_type, data, exception):
         try:
-            result = self.DataAccess.features_with_intersects_and_similarityv2(feature_type['xmin'], feature_type['ymin'],
-                                                                               feature_type['xmax'], feature_type['ymax'],
+            result = self.DataAccess.features_with_intersects_and_similarityv2(feature_type['xmin'],
+                                                                               feature_type['ymin'],
+                                                                               feature_type['xmax'],
+                                                                               feature_type['ymax'],
                                                                                feature_type['geometry'])
             if feature_type.keys().__contains__('feature_type_id'):
                 for r in result:
