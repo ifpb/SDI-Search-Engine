@@ -20,7 +20,11 @@ log = util.get_logger()
 
 # engine para conexão com banco de dados
 try:
-    engine = create_engine('postgresql://postgres:postgres@localhost:5433/inde_database')
+    # container
+    engine = create_engine(
+        'postgresql://postgres:postgres@db_postgres:5432/inde_database_docker')
+    # local
+    # engine = create_engine('postgresql://postgres:postgres@localhost:5433/inde_database')
 except:
     traceback.print_exc()
 

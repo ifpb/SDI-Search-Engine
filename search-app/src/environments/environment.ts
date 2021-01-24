@@ -4,7 +4,10 @@
 
 export const environment = {
   production: false,
-  SEARCH_ENGINE_API: 'http://127.0.0.1:5000'
+  // container
+  SEARCH_ENGINE_API: 'http://api_search_engine:5000'
+  // local
+  // SEARCH_ENGINE_API: 'http://127.0.0.1:5000'
 };
 
 /*

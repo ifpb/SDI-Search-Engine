@@ -5,3 +5,4 @@ sqlalchemy
 psycopg2
 dateparser
 pysolr
+schedule

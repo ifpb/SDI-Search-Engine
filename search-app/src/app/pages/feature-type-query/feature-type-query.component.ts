@@ -61,7 +61,9 @@ export class FeatureTypeQueryComponent implements OnInit {
     if (this.features && this.features.length >= 0) {
       this.features = null;
     }
-    this.placeName = this.placeName.trim();
+    if (this.placeName) {
+      this.placeName = this.placeName.trim();
+    }
     console.log(this.placeName);
     this.blockedButton = true;
     this.error = '';

@@ -1,10 +1,10 @@
 version: "3.3"
 services:
-  # db_postgres:
-  #   container_name: db_postgres_app
-  #   build: ./db/
-  #   ports: 
-  #     - 5433:5432
+  db_postgres:
+    container_name: db_postgres_app
+    build: ./db/
+    ports: 
+      - 5433:5432
 
   solr_app:
     image: solr:8
@@ -15,6 +15,14 @@ services:
       - ./solrdata:/opt/solr/server/solr/configsets/
     ports:
       - 8983:8983
+
+  processing_engine:
+    build: ./processing_engine/
+    container_name: processing_engine_app
+    links: 
+      - db_postgres
+    depends_on:
+      - db_postgres
   
   api_search_engine:
     build: ./api_search_engine/
@@ -22,8 +30,18 @@ services:
     ports: 
       - 5000:5000
     links: 
-      # - db_postgres
+      - db_postgres
       - solr_app
     depends_on:
-      # - db_postgres
+      - db_postgres
       - solr_app
+
+  search_app:
+    build: ./search-app/
+    container_name: app_search
+    ports:
+      - 80:80
+    links:
+      - api_search_engine
+    depends_on:
+      - api_search_engine

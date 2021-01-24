@@ -63,7 +63,9 @@ export class ServicesQueryComponent implements OnInit {
     if (this.services && this.services.length >= 0) {
       this.services = null;
     }
-    console.log(this.search);
+    if (this.search) {
+      this.search = this.search.trim();
+    }
     this.error = '';
     this.blockedButton = true;
     this.choices = null;

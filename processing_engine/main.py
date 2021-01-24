@@ -5,7 +5,7 @@ from owslib.wms import WebMapService
 from owslib.wfs import WebFeatureService
 from requests import ConnectTimeout, ReadTimeout
 from datetime import datetime
-
+    
 import tematic
 import util
 import data_access
@@ -13,6 +13,8 @@ from data_access import update as data_access_update
 import uuid
 import geometry_data
 import datetime
+import schedule
+import time
 
 # turn off future warnings
 import warnings
@@ -23,7 +25,6 @@ warnings.simplefilter(action='ignore', category=FutureWarning)
 
 ''' Log com as configurações padroes '''
 log = util.get_logger()
-
 
 TYPE_FEATURE_TYPE = 0
 TYPE_SERVICE = 1
@@ -360,55 +361,56 @@ def add_records(records, catalogue_id, from_update=False):
 
 def find_register_of_catalogue(url_catalogue, catalogue_id, update_records_flag=False):
     '''Busca todos os serviços de cada recuro do catologo e persiste'''
-    # try:
-    csw = CatalogueServiceWeb(url=url_catalogue)
-    csw.getrecords2()
-    i = 0
-    # total = csw.results['matches']
-    total = 100
-    log.info('PROCESSING ENGINE -> Total Records: ' + str(total))
-    if update_records_flag:
-        records_of_catalogue = data_access.registers_of_catalogue(catalogue_id)
-        if len(records_of_catalogue) == 0:
-            update_records_flag = False
-    if update_records_flag:
-        while i < total:
-            records_for_add = []
-            records_for_update = []
-            log.info("PROCESSING ENGINE -> Record Index " + str(i))
-            csw.getrecords2(maxrecords=100, startposition=i, esn='full')
-            for record_name in csw.records:
-                if csw.records[record_name].identifier is not None:
-                    record = csw.records[record_name]
-                    if record.identifier + current_csw_url in records_of_catalogue.keys():
-                        try:
-                            current_date = records_of_catalogue[record.identifier + current_csw_url]
-                            updated_date = datetime.datetime.strptime(record.date.replace('/', '-'), '%Y-%m-%d').date()
-                            if updated_date > current_date:
-                                log.info(
-                                    "PROCESSING ENGINE -> update record: " + record.identifier + current_csw_url)
-                                records_for_update.append(record)
-                            else:
-                                log.info("PROCESSING ENGINE -> Record is last: " + record.identifier + current_csw_url)
-                        except Exception as e:
-                            log.warning('PROCESSING ENGINE -> Fail on load date:')
-                            log.warning('PROCESSING ENGINE -> date format: ' + str(records_of_catalogue[record.identifier + current_csw_url]))
-                            log.warning('PROCESSING ENGINE -> date format: ' + str(record.date.replace('/', '-')))
-                            log.error(e)
-                    else:
-                        log.info("PROCESSING ENGINE -> Update Record: New: " + record.identifier + current_csw_url)
-                        records_for_add.append(record)
-            update_registers(records_for_update)
-            add_records(records_for_add, catalogue_id, True)
-            i += 100
-    else:
-        while i < total:
-            log.info("PROCESSING ENGINE -> Indice de records " + str(i))
-            csw.getrecords2(maxrecords=100, startposition=i, esn='full')
-            add_records(csw.records, catalogue_id)
-            i += 100
-    # except Exception as e:
-    #     raise
+    try:
+        csw = CatalogueServiceWeb(url=url_catalogue)
+        csw.getrecords2()
+        i = 0
+        # total = csw.results['matches']
+        total = 100
+        log.info('PROCESSING ENGINE -> Total Records: ' + str(total))
+        if update_records_flag:
+            records_of_catalogue = data_access.registers_of_catalogue(catalogue_id)
+            if len(records_of_catalogue) == 0:
+                update_records_flag = False
+        if update_records_flag:
+            while i < total:
+                records_for_add = []
+                records_for_update = []
+                log.info("PROCESSING ENGINE -> Record Index " + str(i))
+                csw.getrecords2(maxrecords=100, startposition=i, esn='full')
+                for record_name in csw.records:
+                    if csw.records[record_name].identifier is not None:
+                        record = csw.records[record_name]
+                        if record.identifier + current_csw_url in records_of_catalogue.keys():
+                            try:
+                                current_date = records_of_catalogue[record.identifier + current_csw_url]
+                                updated_date = datetime.datetime.strptime(record.date.replace('/', '-'), '%Y-%m-%d').date()
+                                if updated_date > current_date:
+                                    log.info(
+                                        "PROCESSING ENGINE -> update record: " + record.identifier + current_csw_url)
+                                    records_for_update.append(record)
+                                else:
+                                    log.info("PROCESSING ENGINE -> Record is last: " + record.identifier + current_csw_url)
+                            except Exception as e:
+                                log.warning('PROCESSING ENGINE -> Fail on load date:')
+                                log.warning('PROCESSING ENGINE -> date format: ' + str(
+                                    records_of_catalogue[record.identifier + current_csw_url]))
+                                log.warning('PROCESSING ENGINE -> date format: ' + str(record.date.replace('/', '-')))
+                                log.error(e)
+                        else:
+                            log.info("PROCESSING ENGINE -> Update Record: New: " + record.identifier + current_csw_url)
+                            records_for_add.append(record)
+                update_registers(records_for_update)
+                add_records(records_for_add, catalogue_id, True)
+                i += 100
+        else:
+            while i < total:
+                log.info("PROCESSING ENGINE -> Indice de records " + str(i))
+                csw.getrecords2(maxrecords=100, startposition=i, esn='full')
+                add_records(csw.records, catalogue_id)
+                i += 100
+    except Exception as e:
+        raise
 
 
 def build_dataframe_catalogue(url_catalogue):
@@ -421,6 +423,8 @@ def build_dataframe_catalogue(url_catalogue):
     except Exception:
         '''Lança a exceção para quem chamou esse escopo'''
         raise
+
+
 #
 
 
@@ -436,18 +440,31 @@ def update_or_add_catalogue(catalogue_url):
 
 
 current_csw_url = ''
+
+
+def run():
+    try:
+        catalogues = [
+            'http://www.metadados.inde.gov.br/geonetwork/srv/por/csw',
+            # 'https://www.sciencebase.gov/catalog/csw',
+            # 'http://bdgex.eb.mil.br/csw'
+            # 'http://geoinfo.cnpm.embrapa.br/catalogue/csw'
+        ]
+        for c in catalogues:
+            current_csw_url = c
+            update_or_add_catalogue(c)
+            # catalogue_id = build_dataframe_catalogue(c)
+            # find_register_of_catalogue(c, catalogue_id)
+    except:
+        log.error(' -- PROCESSING ENGINE - ERROR -- ')
+        traceback.print_exc()
+
+
+schedule.every().day.at("00:00").do(run)
+
 if __name__ == '__main__':
-    # try:
-    catalogues = [
-        'http://www.metadados.inde.gov.br/geonetwork/srv/por/csw',
-        # 'https://www.sciencebase.gov/catalog/csw',
-        # 'http://bdgex.eb.mil.br/csw'
-        # 'http://geoinfo.cnpm.embrapa.br/catalogue/csw'
-    ]
-    for c in catalogues:
-        current_csw_url = c
-        update_or_add_catalogue(c)
-        # catalogue_id = build_dataframe_catalogue(c)
-        # find_register_of_catalogue(c, catalogue_id)
-    # except:
-    # traceback.print_exc()
+    log.info(' -- PROCESSING ENGINE -- ')
+    while True:
+        schedule.run_pending()
+        print(time.ctime())
+        time.sleep(1)

@@ -4,8 +4,10 @@ import util
 
 log = util.get_logger()
 
-solr = pysolr.Solr('http://localhost:8983/solr/inde',
-                   always_commit=True, timeout=10)
+# container
+solr = pysolr.Solr('http://solr_app:8983/solr/inde', always_commit=True, timeout=10)
+# local
+# solr = pysolr.Solr('http://localhost:8983/solr/inde', always_commit=True, timeout=10)
 
 
 def add_document_service(data, service_id):
