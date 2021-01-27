@@ -1,5 +1,5 @@
 requests
-OWSLib
+-e git+https://github.com/Leanderson-Coelho/OWSLib.git@abb2953b53ba47423ee687492037fd4fead38ef2#egg=OWSLib
 pandas
 sqlalchemy
 psycopg2

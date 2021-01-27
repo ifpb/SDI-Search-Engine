@@ -15,10 +15,12 @@ services:
       - ./solrdata:/opt/solr/server/solr/configsets/
     ports:
       - 8983:8983
-
+  
   processing_engine:
     build: ./processing_engine/
     container_name: processing_engine_app
+    volumes:
+      - "./processing_engine:/processing_engine/"
     links: 
       - db_postgres
     depends_on:
@@ -27,6 +29,8 @@ services:
   api_search_engine:
     build: ./api_search_engine/
     container_name: api_search_engine_app
+    volumes:
+      - "./api_search_engine:/api_search_engine/"
     ports: 
       - 5000:5000
     links: 
@@ -39,6 +43,8 @@ services:
   search_app:
     build: ./search-app/
     container_name: app_search
+    volumes:
+      - "./search-app:/usr/src/app/"
     ports:
       - 80:80
     links:

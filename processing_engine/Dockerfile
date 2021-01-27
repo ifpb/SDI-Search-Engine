@@ -1,8 +1,8 @@
 FROM python:3
 
-COPY . .
+WORKDIR /processing_engine
 
-COPY requirements.txt .
+COPY . .
 
 RUN pip3 install --no-cache-dir -r requirements.txt
 

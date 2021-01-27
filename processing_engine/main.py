@@ -366,7 +366,7 @@ def find_register_of_catalogue(url_catalogue, catalogue_id, update_records_flag=
         csw.getrecords2()
         i = 0
         # total = csw.results['matches']
-        total = 100
+        total = 1000
         log.info('PROCESSING ENGINE -> Total Records: ' + str(total))
         if update_records_flag:
             records_of_catalogue = data_access.registers_of_catalogue(catalogue_id)
