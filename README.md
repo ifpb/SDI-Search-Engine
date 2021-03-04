@@ -1,24 +1,42 @@
 # SDI Search Engine
-Readme em andamento...
 
-### Integração como serviço secundário.
+## Executar a ferramenta
 
-#### Serviços 
-* `db_postgres`: Container postgres com os feature types e services extraidos da [INDE](http://metadados.inde.gov.br/geonetwork/srv/por/main.home). Use o [Link](https://drive.google.com/file/d/1OyIXQI2fiCnP-1Nclp1AZJJOD1D1mmQp/view?usp=sharing) para fazer o donwload do backup do banco com parte dos dados da `INDE`. **Após o download import os dados no banco através de uma conexão localhost na porta `:5433` database:`inde_database_docker`.**
+1. Baixar arquivo de `insert` para a tabela auxiliar `place` [link de download](https://drive.google.com/file/d/1VaM4KSec-oVtjZIc3LNrdSTZ3plFPuCB/view?usp=sharing)
+2. Não mude o nome do arquivo `05_place_insert.sql`.
+3. Insira o arquivo em `/db`
 
-* `solr_app`: Container [Solr](https://lucene.apache.org/solr/) para busca temática da ferramente. Use o arquivo `backup/features_and_services_backup.json` para inserir o backup dos dados.
+**Na primeira inicialização:**
 
-* `api_search_engine`: API Flask responsável por disponibilizar endpoints para consulta ao dados da ferramenta.  
+> ./build.sh
+
+**A partir da segunda+ incialização:**
+
+> ./start.sh
+
+**Para parar:**
+
+> ./stop.sh
+
+### Integração como serviço secundário. (Somente para a integração que a ferramente teve com outro trabalho de pesquisa)
+
+#### Serviços
+
+- `db_postgres`: Container postgres com os feature types e services extraidos da [INDE](http://metadados.inde.gov.br/geonetwork/srv/por/main.home). Use o [Link](https://drive.google.com/file/d/1OyIXQI2fiCnP-1Nclp1AZJJOD1D1mmQp/view?usp=sharing) para fazer o donwload do backup do banco com parte dos dados da `INDE`. **Após o download import os dados no banco através de uma conexão localhost na porta `:5433` database:`inde_database_docker`.**
+
+- `solr_app`: Container [Solr](https://lucene.apache.org/solr/) para busca temática da ferramente. Use o arquivo `backup/features_and_services_backup.json` para inserir o backup dos dados.
+
+- `api_search_engine`: API Flask responsável por disponibilizar endpoints para consulta ao dados da ferramenta.
 
 ###### Passos para importar os dados no solr
 
->> Após iniciar o container do solr execute os sequintes passos:
+> > Após iniciar o container do solr execute os sequintes passos:
 
 1. Acesse a interface web do solr através da url `http://localhost:8983/solr/#/`
 
 2. Selecione o core `inde` na barra de menu esquerda. Imagem abaixo.
 
-![](./backup/img_tutorial/core_inde.jpeg?raw=true "Core inde")
+![](./backup/img_tutorial/core_inde.jpeg?raw=true 'Core inde')
 
 3. Selecione a opção `Documents` abaixo do select de cores.
 
@@ -40,7 +58,7 @@ Use o scrtip `stop.sh` para parar os containers em uso.
 
 ### API
 
-``````
+```
  - Similar Service
  - Returns a list of services similar to the one sent, according to your bounding box and theme
 GET /similar/services/{service_id} HTTP/1.1
@@ -83,3 +101,4 @@ Content-Length: ...
 	"23125c81-f581-46e6-93e7-64d74c07ab6d",
 	"d0c8bb6b-81b9-4700-a6ca-0b310a2b2a1f"
 ]
+```

@@ -3,9 +3,11 @@ from owslib.csw import CatalogueServiceWeb
 from pandas import DataFrame
 from owslib.wms import WebMapService
 from owslib.wfs import WebFeatureService
-from requests import ConnectTimeout, ReadTimeout
+from requests import ConnectTimeout, ReadTimeout, HTTPError
 from datetime import datetime
-    
+
+# from
+
 import tematic
 import util
 import data_access
@@ -20,6 +22,7 @@ import time
 import warnings
 
 import tagging_temporal
+from exception import NoFeaturesOfService
 
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
@@ -110,6 +113,7 @@ def process_feature_type(featureType, service_id, content, service_description):
         }
     else:
         log.info('PROCESSING ENGINE -> exists feature-> name: ' + data['name'])
+        return None
 
 
 def persist_feature_type(content, service_description, service_id):
@@ -123,6 +127,8 @@ def persist_feature_type(content, service_description, service_id):
             if data is not None:
                 features_solr_docs.append(data['solr_doc'])
                 all_description += data['description']
+        if features_solr_docs.__len__() == 0:
+            raise NoFeaturesOfService.NoFeaturesOfService()
         tematic.add_documents_feature_type(features_solr_docs)
         return all_description
     except Exception as e:
@@ -135,8 +141,6 @@ def persist_wms_service(url_record, record, catalogue_id, url_wfs=None):
         log.info("PROCESSING ENGINE -> Starting request")
         wms = WebMapService(url_record)
         if len(wms.contents) > 0:
-            '''Só persisti o registro caso a requisição para o serviço de certo'''
-            register_id = persist_register(record, catalogue_id)
             columns = [
                 'wfs_url', 'wms_url', 'service_processed', 'title',
                 'description', 'publisher', 'register_id', 'geometry',
@@ -147,13 +151,12 @@ def persist_wms_service(url_record, record, catalogue_id, url_wfs=None):
                 'service_processed': 'OGC:WMS',
                 'title': util.process_escape_character(record.title),
                 'description': util.process_escape_character(record.abstract),
-                'register_id': register_id,
+                'register_id': '',
                 'start_date': None,
                 'end_date': None,
                 'area': None
             }
-            if url_wfs is not None:
-                data['wfs_url'] = url_wfs
+            service_id = uuid.uuid4()
             if dir(wms.provider).__contains__('contact') and dir(wms.provider.contact).__contains__('organization'):
                 data['publisher'] = util.process_escape_character(
                     wms.provider.contact.organization)
@@ -161,15 +164,21 @@ def persist_wms_service(url_record, record, catalogue_id, url_wfs=None):
                 data['publisher'] = util.process_escape_character(record.publisher)
             else:
                 data['publisher'] = None
-            data = find_date(data)
-            if data['start_date'] and data['end_date'] is None:
-                data = find_date_in_service_metadata(data, record.date)
-            service_id = uuid.uuid4()
-            # thematic index
             service_description = util.build_string_for_solr(
                 [data['title'], data['description'], data['publisher']]
             )
             service_description += persist_feature_type(wms.contents, service_description, service_id.__str__())
+            '''Só persisti o registro caso a requisição para o serviço de certo'''
+            register_id = persist_register(record, catalogue_id)
+            data['register_id'] = register_id
+
+            if url_wfs is not None:
+                data['wfs_url'] = url_wfs
+
+            data = find_date(data)
+            if data['start_date'] and data['end_date'] is None:
+                data = find_date_in_service_metadata(data, record.date)
+            # thematic index
             tematic.add_document_service(service_description, service_id)
 
             df = DataFrame(data=data, columns=columns, index=[service_id])
@@ -189,7 +198,8 @@ def persist_wfs_service(url_record, record, catalogue_id):
         wfs = WebFeatureService(url_record)
         '''Só persisti o registro caso a requisição para o serviço de certo'''
         if len(wfs.contents) > 0:
-            register_id = persist_register(record, catalogue_id)
+            service_id = uuid.uuid4()
+
             columns = [
                 'wfs_url', 'wms_url', 'service_processed', 'title',
                 'description', 'publisher', 'register_id', 'geometry',
@@ -200,11 +210,12 @@ def persist_wfs_service(url_record, record, catalogue_id):
                 'service_processed': 'OGC:WFS',
                 'title': util.process_escape_character(record.title),
                 'description': util.process_escape_character(record.abstract),
-                'register_id': register_id,
+                'register_id': '',
                 'start_date': None,
                 'end_date': None,
                 'area': None
             }
+
             '''Verificando se existe os atributos de publisher'''
             if dir(wfs.provider).__contains__('contact') and dir(wfs.provider.contact).__contains__('organization'):
                 data['publisher'] = util.process_escape_character(
@@ -213,15 +224,20 @@ def persist_wfs_service(url_record, record, catalogue_id):
                 data['publisher'] = util.process_escape_character(record.publisher)
             else:
                 data['publisher'] = None
-            data = find_date(data)
-            if data['start_date'] and data['end_date'] is None:
-                data = find_date_in_service_metadata(data, record.date)
-            service_id = uuid.uuid4()
-            # thematic index
+
             service_description = util.build_string_for_solr(
                 [data['title'], data['description'], data['publisher']]
             )
             service_description += persist_feature_type(wfs.contents, service_description, service_id.__str__())
+
+            register_id = persist_register(record, catalogue_id)
+            data['register_id'] = register_id
+
+            data = find_date(data)
+            if data['start_date'] and data['end_date'] is None:
+                data = find_date_in_service_metadata(data, record.date)
+            # thematic index
+
             tematic.add_document_service(service_description, service_id)
 
             df = DataFrame(data=data, columns=columns, index=[service_id])
@@ -281,7 +297,7 @@ def add_records(records, catalogue_id, from_update=False):
     verificadoWMS = []
     verificadoWFS = []
     contains_both = False
-    alternatives_wms = ('OGC:WMS', 'OGC:WMS-1.1.1-http-get-capabilities')
+    # alternatives_wms = ('OGC:WMS', 'OGC:WMS-1.1.1-http-get-capabilities')
     for record in records:
         if from_update:
             identifier = record.identifier
@@ -294,14 +310,14 @@ def add_records(records, catalogue_id, from_update=False):
             tuple = {}
             log.info("PROCESSING ENGINE -> Analyzing URIs")
             for uriDict in record_data.uris:
-                if uriDict['protocol'] in alternatives_wms:
+                if uriDict['protocol'] == 'OGC:WMS':
                     tuple['wms'] = uriDict['url']
                 elif uriDict['protocol'] == 'OGC:WFS':
                     tuple['wfs'] = uriDict['url']
             if len(tuple) == 0:
                 log.info("PROCESSING ENGINE -> Analyzing references")
                 for ref in record_data.references:
-                    if ref['scheme'] in alternatives_wms:
+                    if ref['scheme'] == 'OGC:WMS':
                         tuple['wms'] = ref['url']
                     elif ref['scheme'] == 'OGC:WFS':
                         tuple['wfs'] = ref['url']
@@ -309,54 +325,66 @@ def add_records(records, catalogue_id, from_update=False):
                 contains_both = True
             if 'wms' in tuple:
                 try:
-                    log.info("PROCESSING ENGINE -> found a record wms")
-                    if not recursosIndisponiveis \
-                            .__contains__(tuple['wms']) and not verificadoWMS.__contains__(tuple['wms']):
+                    log.info("PROCESSING ENGINE -> found a record wms: " + tuple['wms'])
+                    if not recursosIndisponiveis.__contains__(tuple['wms']) and not verificadoWMS.__contains__(tuple['wms']):
                         verificadoWMS.append(tuple['wms'])
                         if tuple['wms'] is not None:
                             if contains_both:
-                                log.info("PROCESSING ENGINE -> both services available")
-                                persist_wms_service(tuple['wms'], record_data, catalogue_id, tuple['wfs'])
+                                if tuple.keys().__contains__('wfs') and tuple['wfs'] is not None:
+                                    log.info("PROCESSING ENGINE -> both services available")
+                                    persist_wms_service(tuple['wms'], record_data, catalogue_id, tuple['wfs'])
+                                else:
+                                    persist_wms_service(tuple['wms'], record_data, catalogue_id)
                             else:
                                 persist_wms_service(tuple['wms'], record_data, catalogue_id)
                     else:
                         log.info("PROCESSING ENGINE -> has been verified")
+                except HTTPError as e:
+                    log.warning("Request fail: HTTPError")
+                    log.warning(e)
                 except ConnectTimeout as e:
                     log.warning("Request fail: timeout")
                     log.warning("Service: " + str(tuple['wms']))
                     recursosIndisponiveis.append(tuple['wms'])
                 except ReadTimeout as e:
-                    log.warning('timeout')
+                    log.warning('PROCESSING ENGINE -> Timeout')
+                except NoFeaturesOfService.NoFeaturesOfService as e:
+                    log.warning("PROCESSING ENGINE -> NoFeaturesOfService")
+                    log.warning("PROCESSING ENGINE -> All the content of this service has already been processed from another")
                 except Exception as e:
                     log.info("PROCESSING ENGINE -> Unknown error during the process")
                     log.error(e)
-                    log.error(repr(traceback.extract_stack()))
+                    # log.error(repr(traceback.extract_stack()))
             elif 'wfs' in tuple:
                 try:
-                    log.info("PROCESSING ENGINE -> found a record wfs")
-                    if not recursosIndisponiveis.__contains__(tuple['wfs']) \
-                            and not verificadoWFS.__contains__(tuple['wfs']):
+                    log.info("PROCESSING ENGINE -> found a record wfs: " + tuple['wfs'])
+                    if not recursosIndisponiveis.__contains__(tuple['wfs']) and not verificadoWFS.__contains__(tuple['wfs']):
                         verificadoWFS.append(tuple['wfs'])
                         if tuple['wfs'] is not None:
                             persist_wfs_service(tuple['wfs'], record_data, catalogue_id)
                     else:
                         log.info("PROCESSING ENGINE -> has been verified")
+                except HTTPError as e:
+                    log.warning("Request fail: HTTPError - " + e)
                 except ConnectTimeout as e:
                     log.warning("Request fail: timeout")
                     log.warning("Service: " + str(tuple['wfs']))
                     recursosIndisponiveis.append(tuple['wfs'])
                 except ReadTimeout as e:
-                    log.warning('timeout')
+                    log.warning('PROCESSING ENGINE -> Timeout')
+                except NoFeaturesOfService.NoFeaturesOfService as e:
+                    log.warning("PROCESSING ENGINE -> NoFeaturesOfService")
+                    log.warning("PROCESSING ENGINE -> All the content of this service has already been processed from another")
                 except Exception as e:
                     log.info("PROCESSING ENGINE -> Unknown error during the process")
                     log.error(e)
-                    log.error(repr(traceback.extract_stack()))
-    # log.info('PROCESSING ENGINE -> Recursos indisponíveis')
-    # log.info(recursosIndisponiveis)
-    # log.info('PROCESSING ENGINE -> Recursos verificados WMS')
-    # log.info(verificadoWMS)
-    # log.info('PROCESSING ENGINE -> Recursos verificados WFS')
-    # log.info(verificadoWFS)
+                    # log.error(repr(traceback.extract_stack()))
+    log.info('PROCESSING ENGINE -> Recursos indisponíveis')
+    log.info(recursosIndisponiveis)
+    log.info('PROCESSING ENGINE -> Recursos verificados WMS')
+    log.info(verificadoWMS)
+    log.info('PROCESSING ENGINE -> Recursos verificados WFS')
+    log.info(verificadoWFS)
 
 
 def find_register_of_catalogue(url_catalogue, catalogue_id, update_records_flag=False):
@@ -364,9 +392,9 @@ def find_register_of_catalogue(url_catalogue, catalogue_id, update_records_flag=
     try:
         csw = CatalogueServiceWeb(url=url_catalogue)
         csw.getrecords2()
-        i = 0
-        # total = csw.results['matches']
-        total = 1000
+        i = 18600
+        total = csw.results['matches']
+        # total = 1000
         log.info('PROCESSING ENGINE -> Total Records: ' + str(total))
         if update_records_flag:
             records_of_catalogue = data_access.registers_of_catalogue(catalogue_id)
@@ -468,3 +496,7 @@ if __name__ == '__main__':
         schedule.run_pending()
         print(time.ctime())
         time.sleep(1)
+    # or
+    # log.info(' -- Sleep 15s -- ')
+    # time.sleep(15)
+    # run()

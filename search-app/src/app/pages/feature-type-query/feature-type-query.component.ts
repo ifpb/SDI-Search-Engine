@@ -16,10 +16,10 @@ export class FeatureTypeQueryComponent implements OnInit {
   resources: Resource[];
 
   features: FeatureType[];
-  placeName: string;
-  startDate: string;
-  endDate: string;
-  theme: string;
+  placeName: string = 'piracicaba';
+  startDate: string = '2017-01-01';
+  endDate: string = '2017-12-31';
+  theme: string = 'escorregamento';
   blockedButton: boolean = false;
   error: string;
   choices: any[];

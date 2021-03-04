@@ -20,6 +20,10 @@ COPY ./01-initdb-postgis.sh /docker-entrypoint-initdb.d/01-postgis.sh
 
 COPY ./02_tables.sql /docker-entrypoint-initdb.d
 
-COPY ./03_place_insert.sql /docker-entrypoint-initdb.d
+COPY ./03_bbox_intersects_area.sql /docker-entrypoint-initdb.d
+
+COPY ./04_similarity.sql /docker-entrypoint-initdb.d
+
+COPY ./05_place_insert.sql /docker-entrypoint-initdb.d
 
 

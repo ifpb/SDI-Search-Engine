@@ -145,10 +145,14 @@ def create_geometry(bounding_box_xmin, bounding_box_ymin, bounding_box_xmax, bou
 
 
 def exists_feature_type(feature_type):
+    # query = f"""
+    # SELECT * FROM feature_type WHERE title ilike '{feature_type['title']}'
+    # and description ilike '{feature_type['description']}' and
+    # keywords ilike '{feature_type['keywords']}'
+    # """
+
     query = f"""
-    SELECT * FROM feature_type WHERE title ilike '{feature_type['title']}'
-    and description ilike '{feature_type['description']}' and
-    keywords ilike '{feature_type['keywords']}'
+        SELECT * FROM feature_type WHERE name ilike '{feature_type['name']}'
     """
     query = query.replace('%', '')
     result = engine.execute(query)
@@ -212,20 +216,6 @@ def features_of_service(service_id):
         raise e
 
 
-# engine.execute(f"UPDATE feature_type SET "
-#                f"title = '{data['title']}',"
-#                f"description = '{data['description']}',"
-#                f"keywords = '{data['keywords']}',"
-#                f"start_date = {data['start_date']},"
-#                f"end_date = {data['end_date']},"
-#                f"features_of_service = {data['features_of_service']},"
-#                f"geometry = '{data['geometry']}',"
-#                f"x_min = {data['x_min']},"
-#                f"y_min = {data['y_min']},"
-#                f"x_max = {data['x_max']},"
-#                f"y_max = {data['y_max']},"
-#                f"area = {data['area'] or ''} "
-#                f"WHERE id = '{feature_id}'")
 def update_feature_type(data, feature_id):
     try:
         columns = [
@@ -234,7 +224,8 @@ def update_feature_type(data, feature_id):
             'x_max', 'y_max'
         ]
         df = DataFrame(data=data, columns=columns, index=[feature_id])
-        df.to_sql(name='feature_type', con=engine, if_exists='append', index=True, index_label='id')
+        df.to_sql(name='feature_type', con=engine,
+                  if_exists='append', index=True, index_label='id')
     except Exception as e:
         raise e
 
@@ -246,6 +237,7 @@ def update_service_all_data(data, service_id):
             'start_date', 'end_date'
         ]
         df = DataFrame(data=data, columns=columns, index=[service_id])
-        df.to_sql(name='service', con=engine, if_exists='append', index=True, index_label='id')
+        df.to_sql(name='service', con=engine, if_exists='append',
+                  index=True, index_label='id')
     except Exception as e:
         raise e

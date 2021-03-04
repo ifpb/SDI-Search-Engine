@@ -1,4 +1,5 @@
 import time
+from owslib.wms import WebMapService
 
 if __name__ == '__main__':
     while True:

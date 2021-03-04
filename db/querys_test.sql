@@ -12,6 +12,11 @@
 --);
 --CREATE INDEX geomindex_place_2 ON public.place_2 USING gist (geom);
 
+delete from catalogue;
+delete from service;
+delete from feature_type;
+delete from register;
+
 
 select count(*) from place
 

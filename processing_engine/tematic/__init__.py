@@ -63,4 +63,4 @@ if __name__ == '__main__':
     # remove_document_feature_type('eabcf6c8-7326-4175-b570-e2399fb490a9')
     # solr.delete(feature_type_id='d998c100-f88a-4a7c-a86f-e415e102f195')
     # if False:
-    #     solr.delete(q='*:*', commit=True)
+    # solr.delete(q='*:*', commit=True)

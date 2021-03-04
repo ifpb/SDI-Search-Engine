@@ -16,10 +16,10 @@ export class ServicesQueryComponent implements OnInit {
   // data
   resources: Resource[];
 
-  search: string;
-  startDate: string;
-  endDate: string;
-  theme: string;
+  search: string = 'são paulo';
+  startDate: string = '2016-01-01';
+  endDate: string = '2017-01-01';
+  theme: string = 'água costeira';
   blockedButton: boolean = false;
   services: Service[];
   error: string;
